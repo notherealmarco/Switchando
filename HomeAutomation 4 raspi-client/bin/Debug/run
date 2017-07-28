@@ -1,0 +1,7 @@
+#!/bin/bash
+sudo pigpiod
+while :
+do
+	mono "/home/pi/HomeAutomation/HomeAutomation 4 Server.exe"
+	sleep 1
+done

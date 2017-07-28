@@ -1,0 +1,8 @@
+D:\Documents\Visual Studio 2017\Projects\HomeAutomation 4 raspi-client\HomeAutomation 4 raspi-client\bin\Release\HomeAutomation 4 raspi-client.exe.config
+D:\Documents\Visual Studio 2017\Projects\HomeAutomation 4 raspi-client\HomeAutomation 4 raspi-client\bin\Release\HomeAutomation 4 raspi-client.exe
+D:\Documents\Visual Studio 2017\Projects\HomeAutomation 4 raspi-client\HomeAutomation 4 raspi-client\bin\Release\HomeAutomation 4 raspi-client.pdb
+D:\Documents\Visual Studio 2017\Projects\HomeAutomation 4 raspi-client\HomeAutomation 4 raspi-client\bin\Release\Newtonsoft.Json.dll
+D:\Documents\Visual Studio 2017\Projects\HomeAutomation 4 raspi-client\HomeAutomation 4 raspi-client\bin\Release\Newtonsoft.Json.xml
+D:\Documents\Visual Studio 2017\Projects\HomeAutomation 4 raspi-client\HomeAutomation 4 raspi-client\obj\Release\HomeAutomation 4 raspi-client.exe
+D:\Documents\Visual Studio 2017\Projects\HomeAutomation 4 raspi-client\HomeAutomation 4 raspi-client\obj\Release\HomeAutomation 4 raspi-client.pdb
+D:\Documents\Visual Studio 2017\Projects\HomeAutomation 4 raspi-client\HomeAutomation 4 raspi-client\obj\Release\HomeAutomation 4 raspi-client.csprojResolveAssemblyReference.cache
