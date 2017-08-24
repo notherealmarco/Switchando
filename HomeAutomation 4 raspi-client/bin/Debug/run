@@ -2,6 +2,6 @@
 sudo pigpiod
 while :
 do
-	mono "/home/pi/HomeAutomation/HomeAutomation 4 Server.exe"
+	mono "/home/pi/HomeAutomation/HomeAutomation 4 raspi-client.exe"
 	sleep 1
 done

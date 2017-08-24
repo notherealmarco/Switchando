@@ -121,6 +121,12 @@ namespace HomeAutomation.Objects.Inputs
                                 networkInterface.Run(commands);
                             }
                         }
+                        if (HomeAutomationClient.client.ConnectionEstabilished == true)
+                        {
+                            Console.WriteLine("Sending updates to the server...");
+                            HomeAutomationClient.client.TcpClient.writer.WriteLine(message + "&password=" + HomeAutomationClient.client.Password);
+                        }
+
                     }
                 }
                 List<ISwitch> objectsList = new List<ISwitch>();
@@ -134,6 +140,16 @@ namespace HomeAutomation.Objects.Inputs
                 foreach (ISwitch iobj in objectsList)
                 {
                     iobj.Start();
+                }
+                foreach (string objname in Objects)
+                {
+                    string command = "interface=auto&objname=" + objname + "&switch=true&password=" + HomeAutomationClient.client.Password;
+                    if (HomeAutomationClient.client.ConnectionEstabilished == true)
+                    {
+                        Console.WriteLine("Sending updates to the server...");
+                        HomeAutomationClient.client.TcpClient.writer.WriteLine(command);
+                        System.Threading.Thread.Sleep(100);
+                    }
                 }
             }
             else
@@ -154,6 +170,12 @@ namespace HomeAutomation.Objects.Inputs
                                 networkInterface.Run(commands);
                             }
                         }
+                        if (HomeAutomationClient.client.ConnectionEstabilished == true)
+                        {
+                            Console.WriteLine("Sending updates to the server...");
+                            HomeAutomationClient.client.TcpClient.writer.WriteLine(message + "&password=" + HomeAutomationClient.client.Password);
+                            System.Threading.Thread.Sleep(100);
+                        }
                     }
                 }
                 List<ISwitch> objectsList = new List<ISwitch>();
@@ -167,6 +189,16 @@ namespace HomeAutomation.Objects.Inputs
                 foreach (ISwitch iobj in objectsList)
                 {
                     iobj.Stop();
+                }
+                foreach (string objname in Objects)
+                {
+                    string command = "interface=auto&objname=" + objname + "&switch=false&password=" + HomeAutomationClient.client.Password;
+                    if (HomeAutomationClient.client.ConnectionEstabilished == true)
+                    {
+                        Console.WriteLine("Sending updates to the server...");
+                        HomeAutomationClient.client.TcpClient.writer.WriteLine(command);
+                        System.Threading.Thread.Sleep(100);
+                    }
                 }
             }
         }

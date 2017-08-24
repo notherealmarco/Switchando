@@ -31,7 +31,7 @@ namespace HomeAutomation.Network
                 stream = client.GetStream();
                 writer = new StreamWriter(stream);
                 writer.AutoFlush = true;
-                writer.WriteLine("client-handshake=" + HomeAutomationClient.client.ClientName);
+                writer.WriteLine("client-handshake=" + HomeAutomationClient.client.ClientName + "&password=" + HomeAutomationClient.client.Password);
 
                 HomeAutomationClient.client.ConnectionEstabilished = true;
 

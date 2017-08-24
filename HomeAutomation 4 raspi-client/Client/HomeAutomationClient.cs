@@ -17,6 +17,7 @@ namespace HomeAutomationCore
         public TCPClient TcpClient { get; set; }
 
         public string ClientName;
+        public string Password;
 
         public bool ConnectionEstabilished { get; set; }
         public HomeAutomationClient(string clientName)

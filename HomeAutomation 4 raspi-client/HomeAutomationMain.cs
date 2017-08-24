@@ -15,11 +15,12 @@ namespace HomeAutomationMain
     {
         static void Main(string[] args)
         {
-            string[] nameip = File.ReadAllText(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/raspi-client.json").Split('@');
+            string[] nameip = File.ReadAllText(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/raspi-client.config").Split('@');
             Console.WriteLine("PIGPIOID -> " + PIGPIO.pigpio_start(null, null));
 
             Console.WriteLine("Welcome to HomeAutomation 4 RC1 ALPHA Raspi-Client by Marco Realacci!");
             new HomeAutomationClient(nameip[0]);
+            HomeAutomationClient.client.Password = nameip[2];
             new TCPClient().StartClient(nameip[1]);
             Console.ReadKey();
         }
