@@ -13,7 +13,7 @@ namespace HomeAutomation.Objects.Fans
         public bool Enabled;
         public string Description;
 
-        public HomeAutomationObject ObjectType = HomeAutomationObject.FAN;
+        public string ObjectType = "FAN";
         public SimpleFan(string name, uint pin, string description)
         {
             //this.Client = client;
@@ -65,9 +65,9 @@ namespace HomeAutomation.Objects.Fans
         {
             return Name;
         }
-        public new HomeAutomationObject GetObjectType()
+        public string GetObjectType()
         {
-            return HomeAutomationObject.FAN;
+            return "FAN";
         }
         /*void UploadValues(bool Value, int DimmerIntervals)
         {

@@ -1,12 +1,15 @@
-﻿using HomeAutomation.Objects;
+﻿using HomeAutomation.Application.ConfigRetriver;
+using HomeAutomation.Objects;
+using HomeAutomation.Objects.Blinds;
 using HomeAutomation.Objects.Fans;
 using HomeAutomation.Objects.Inputs;
 using HomeAutomation.Objects.Lights;
-using HomeAutomation.ServerRetriver;
+using HomeAutomation.Objects.Switches;
 using HomeAutomationCore;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -59,17 +62,22 @@ namespace HomeAutomation.Network
                     if (icommand[0].Equals("info_devices"))
                     {
                         //icommand[1] = icommand[1].Replace(",,", "=").Replace(",,,", "&");
-                        HomeAutomationModel[] devices = JsonConvert.DeserializeObject<HomeAutomationModel[]>(icommand[1]);
+                        ExpandoObject[] devices = JsonConvert.DeserializeObject<ExpandoObject[]>(icommand[1]);
                         HomeAutomationClient.client.Objects = new List<IObject>();
-                        foreach (HomeAutomationModel device in devices)
+                        foreach (dynamic device in devices)
                         {
                             if (!device.ClientName.Equals(HomeAutomationClient.client.ClientName))
                             {
-                                Console.WriteLine("I'M NOT " + device.ClientName + "!");
+                                //Console.WriteLine("I'M NOT " + device.ClientName + "!");
                                 continue;
                             }
-                            Console.WriteLine(device.ClientName + " <<->> " + device.Name + " -> " + device.ObjectType.ToString());
-                            if (device.ObjectType == HomeAutomationObject.LIGHT)
+                            Console.WriteLine(device.ClientName + " <<->> " + device.Name + " -> " + device.ObjectType);
+                            if (SetupTool.Exists(device.ObjectType))
+                            {
+                                device.Client = client;
+                                SetupTool.FromId(device.ObjectType).Run(device);
+                            }
+                            /*if (device.ObjectType == .LIGHT)
                             {
                                 if (device.LightType == Objects.Lights.LightType.RGB_LIGHT)
                                 {
@@ -150,6 +158,34 @@ namespace HomeAutomation.Network
 
                                 HomeAutomationClient.client.Objects.Add(relay);
                             }
+                            else if (device.ObjectType == HomeAutomationObject.BLINDS)
+                            {
+                                ISwitch openDevice;
+                                ISwitch closeDevice;
+
+                                Relay relay = new Relay();
+                                relay.Pin = device.OpenDevice.Pin;
+                                relay.Name = device.OpenDevice.Name;
+
+                                relay.Description = device.OpenDevice.Description;
+                                //relay.FriendlyNames = device.OpenDevice.FriendlyNames;
+                                relay.Enabled = device.OpenDevice.Switch;
+                                //relay.ClientName = client.Name;
+                                //relay.SetClient(client);
+                                openDevice = relay;
+
+                                relay = new Relay();
+                                relay.Pin = device.CloseDevice.Pin;
+                                relay.Name = device.CloseDevice.Name;
+                                relay.Description = device.CloseDevice.Description;
+                                //relay.FriendlyNames = device.CloseDevice.FriendlyNames;
+                                relay.Enabled = device.CloseDevice.Switch;
+                                //relay.ClientName = client.Name;
+                                //relay.SetClient(client);
+                                closeDevice = relay;
+
+                                Blinds blinds = new Blinds(device.Name, openDevice, closeDevice, device.TotalSteps, device.Description, device.FriendlyNames);
+                            }*/
                         }
                     }
                 }

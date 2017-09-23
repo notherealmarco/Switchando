@@ -25,7 +25,7 @@ namespace HomeAutomation.Objects.Inputs
 
         public List<string> Objects;
 
-        public HomeAutomationObject ObjectType = HomeAutomationObject.SWITCH_BUTTON;
+        public string ObjectType = "SWITCH_BUTTON";
         public SwitchButton(string name, uint pin)
         {
             this.Pin = pin;
@@ -206,9 +206,9 @@ namespace HomeAutomation.Objects.Inputs
         {
             return this.Name;
         }
-        public HomeAutomationObject GetObjectType()
+        public string GetObjectType()
         {
-            return HomeAutomationObject.SWITCH_BUTTON;
+            return "SWITCH_BUTTON";
         }
         public NetworkInterface GetInterface()
         {
@@ -217,6 +217,22 @@ namespace HomeAutomation.Objects.Inputs
         public string[] GetFriendlyNames()
         {
             return new string[0];
+        }
+        public static void Setup(dynamic device)
+        {
+            SwitchButton button = new SwitchButton(device.Name, (uint)device.Pin);
+            foreach (string command in device.CommandsOn)
+            {
+                button.AddCommand(command, true);
+            }
+            foreach (string command in device.CommandsOff)
+            {
+                button.AddCommand(command, false);
+            }
+            foreach (string objectName in device.Objects)
+            {
+                button.AddObject(objectName);
+            }
         }
     }
 }

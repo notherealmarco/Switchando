@@ -24,7 +24,7 @@ namespace HomeAutomation.Objects.Lights
         public string[] FriendlyNames;
         public string Description;
 
-        public HomeAutomationObject ObjectType = HomeAutomationObject.LIGHT;
+        public string ObjectType = "LIGHT_GPIO_RGB";
         public LightType LightType = LightType.W_LIGHT;
 
         public WLight(string Name, uint pin, string description, string[] FriendlyNames)
@@ -193,9 +193,9 @@ namespace HomeAutomation.Objects.Lights
         {
             return LightType.W_LIGHT;
         }
-        public new HomeAutomationObject GetObjectType()
+        public string GetObjectType()
         {
-            return HomeAutomationObject.LIGHT;
+            return "LIGHT_GPIO_RGB";
         }
         public string GetName()
         {
@@ -250,6 +250,19 @@ namespace HomeAutomation.Objects.Lights
                 return;
             }
             light.Set(Value, dimmer);
+        }
+        public static void Setup(dynamic device)
+        {
+            WLight light = new WLight();
+            light.Pin = (uint)device.Pin;
+            light.Name = device.Name;
+            light.FriendlyNames = Array.ConvertAll(((List<object>)device.FriendlyNames).ToArray(), x => x.ToString());
+            light.Description = device.Description;
+            light.Switch = device.Switch;
+            light.Value = (uint)device.Value;
+
+            HomeAutomationClient.client.Objects.Add(light);
+            light.Init();
         }
     }
 }

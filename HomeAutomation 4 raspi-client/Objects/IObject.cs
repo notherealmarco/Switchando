@@ -3,15 +3,16 @@
     public interface IObject
     {
         string GetName();
-        HomeAutomationObject GetObjectType();
+        string GetObjectType();
     }
-    public enum HomeAutomationObject
+    /*public enum HomeAutomationObject
     {
         LIGHT,
         FAN,
         GENERIC_SWITCH,
         ROOM,
         BUTTON,
-        SWITCH_BUTTON
-    }
+        SWITCH_BUTTON,
+        BLINDS = 7
+    }*/
 }

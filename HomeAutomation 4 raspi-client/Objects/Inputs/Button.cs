@@ -171,9 +171,9 @@ namespace HomeAutomation.Objects.Inputs
         {
             return this.Name;
         }
-        public HomeAutomationObject GetObjectType()
+        public string GetObjectType()
         {
-            return HomeAutomationObject.BUTTON;
+            return "BUTTON";
         }
         public NetworkInterface GetInterface()
         {
@@ -182,6 +182,18 @@ namespace HomeAutomation.Objects.Inputs
         public string[] GetFriendlyNames()
         {
             return new string[0];
+        }
+        public static void Setup(dynamic device)
+        {
+            Button button = new Button(device.Name, (uint)device.Pin);
+            foreach (string command in device.Commands)
+            {
+                button.AddCommand(command);
+            }
+            foreach (string objectName in device.Objects)
+            {
+                button.AddObject(objectName);
+            }
         }
     }
 }

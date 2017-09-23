@@ -32,6 +32,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -47,11 +50,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client\HomeAutomationClient.cs" />
+    <Compile Include="Client\ServerRetrive\SetupTools.cs" />
     <Compile Include="Client\ServerRetrive\HomeAutomationModel.cs" />
     <Compile Include="GPIO\PIGPIO.cs" />
     <Compile Include="HomeAutomationMain.cs" />
     <Compile Include="Network\NetworkInterfaces.cs" />
     <Compile Include="Network\TCPClient.cs" />
+    <Compile Include="Objects\Blinds\Blinds.cs" />
+    <Compile Include="Objects\External\Plugins\IPlugin.cs" />
+    <Compile Include="Objects\External\Plugins\Plugins.cs" />
     <Compile Include="Objects\Fans\SimpleFan.cs" />
     <Compile Include="Objects\Inputs\Button.cs" />
     <Compile Include="Objects\Inputs\SwitchButton.cs" />

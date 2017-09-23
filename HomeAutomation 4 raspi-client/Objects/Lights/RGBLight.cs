@@ -27,7 +27,7 @@ namespace HomeAutomation.Objects.Lights
 
         Semaphore Semaphore;
 
-        public HomeAutomationObject ObjectType = HomeAutomationObject.LIGHT;
+        public string ObjectType = "LIGHT_GPIO_RGB";
         public LightType LightType = LightType.RGB_LIGHT;
 
         public RGBLight()
@@ -274,10 +274,10 @@ namespace HomeAutomation.Objects.Lights
         {
             return LightType.RGB_LIGHT;
         }
-        public new HomeAutomationObject GetObjectType()
+        public new string GetObjectType()
         {
-            return HomeAutomationObject.LIGHT;
-        }
+            return "LIGHT_GPIO_RGB";
+    }
         public string GetName()
         {
             return Name;
@@ -337,6 +337,23 @@ namespace HomeAutomation.Objects.Lights
                 return;
             }
             light.Set(R, G, B, dimmer);
+        }
+        public static void Setup(dynamic device)
+        {
+            RGBLight light = new RGBLight();
+            light.PinR = (uint)device.PinR;
+            light.PinG = (uint)device.PinG;
+            light.PinB = (uint)device.PinB;
+            light.Name = device.Name;
+            light.FriendlyNames = Array.ConvertAll(((List<object>)device.FriendlyNames).ToArray(), x => x.ToString());
+            light.Description = device.Description;
+            light.Switch = device.Switch;
+            light.ValueR = (uint)device.ValueR;
+            light.ValueG = (uint)device.ValueG;
+            light.ValueB = (uint)device.ValueB;
+
+            HomeAutomationClient.client.Objects.Add(light);
+            light.Init();
         }
         /*void UploadValues(uint ValueR, uint ValueG, uint ValueB, int DimmerIntervals)
         {

@@ -1,4 +1,4 @@
-﻿using HomeAutomation.Objects;
+﻿/*using HomeAutomation.Objects;
 using HomeAutomation.Objects.Lights;
 namespace HomeAutomation.ServerRetriver
 {
@@ -27,5 +27,11 @@ namespace HomeAutomation.ServerRetriver
         public string[] CommandsOn;
         public string[] CommandsOff;
         public string[] Objects;
+
+        public HomeAutomationModel OpenDevice;
+        public HomeAutomationModel CloseDevice;
+
+        public byte TotalSteps;
     }
 }
+*/

@@ -18,7 +18,7 @@ namespace HomeAutomation.Objects.Fans
         public bool Enabled;
         public string Description;
 
-        public HomeAutomationObject ObjectType = HomeAutomationObject.GENERIC_SWITCH;
+        public string ObjectType = "GENERIC_SWITCH";
         public Relay(string name, uint pin, string description)
         {
             //this.Client = client;
@@ -70,9 +70,9 @@ namespace HomeAutomation.Objects.Fans
         {
             return Name;
         }
-        public new HomeAutomationObject GetObjectType()
+        public string GetObjectType()
         {
-            return HomeAutomationObject.GENERIC_SWITCH;
+            return "GENERIC_SWITCH";
         }
         /*void UploadValues(bool Value, int DimmerIntervals)
         {
@@ -109,6 +109,16 @@ namespace HomeAutomation.Objects.Fans
                         break;
                 }
             }
+        }
+        public static void Setup(dynamic device)
+        {
+            Relay relay = new Relay();
+            relay.Pin = (uint)device.Pin;
+            relay.Name = device.Name;
+            relay.Description = device.Description;
+            relay.Enabled = device.Switch;
+
+            HomeAutomationClient.client.Objects.Add(relay);
         }
     }
 }

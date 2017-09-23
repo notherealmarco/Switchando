@@ -1,4 +1,5 @@
-﻿using HomeAutomation.Network;
+﻿using HomeAutomation.Application.ConfigRetriver;
+using HomeAutomation.Network;
 using HomeAutomation.Objects;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ namespace HomeAutomationCore
 
         public List<IObject> Objects { get; set; }
         public List<NetworkInterface> NetworkInterfaces { get; set; }
+        public List<SetupTool> Setups { get; set; }
         public TCPClient TcpClient { get; set; }
 
         public string ClientName;
@@ -24,6 +26,7 @@ namespace HomeAutomationCore
         {
             this.ClientName = clientName;
             this.NetworkInterfaces = new List<NetworkInterface>();
+            this.Setups = new List<SetupTool>();
 
             client = this;
 
