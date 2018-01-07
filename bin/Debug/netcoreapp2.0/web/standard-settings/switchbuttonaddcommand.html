@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>#HomeAutomation</title>
+	<link href="/resources/material.min.css" type="text/css" rel="stylesheet">
+	<link href="/resources/style.css" type="text/css" rel="stylesheet">
+	<script src="/resources/jQuery.js"></script>
+	<script src="/resources/material.min.js"></script>
+	<script src="/resources/cookie.js"></script>
+	<script src="/resources/switchando.js"></script>
+	<script src="/resources/helpers/ui-helper.js"></script>
+</head>
+<body>
+
+	<div class="realborders">
+		<h4 style="text-align:center">Add a command to a button</h4>
+		<form id="form" action="/success.html">
+			<span class="span">Name of the button</span>
+			<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width:100%">
+				<input class="mdl-textfield__input" type="text" id="name">
+				<label class="mdl-textfield__label" for="name">Button name</label>
+			</div>
+			<br /><br />
+			<span class="span">API command to add</span>
+			<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width:100%">
+				<input class="mdl-textfield__input" type="text" id="btncmd">
+				<label class="mdl-textfield__label" for="btncmd">Command</label>
+			</div>
+			<br /><br />
+			<div>
+				<label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="optionon">
+					<input type="radio" id="optionon" class="mdl-radio__button" name="options" value="1" checked>
+					<span class="mdl-radio__label">On switch on</span>
+				</label>
+			</div>
+			<div>
+				<label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="optionoff">
+					<input type="radio" id="optionoff" class="mdl-radio__button" name="options" value="2">
+					<span class="mdl-radio__label">On switch off</span>
+				</label>
+			</div>
+			<br /><br />
+			<button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" style="width:100%" onclick="switchButtonAddCommand(form)">
+				ADD COMMAND
+			</button>
+		</form>
+	</div>
+	<script>
+		$('#form').submit(function () {
+			var name = $('#name').val();
+			var command = $('#btncmd').val();
+			var onTurnOn = $('#optionon')[0].checked;
+			var server = new Switchando();
+			var response;
+			if (onTurnOn) server.sendCommand("switch_button/addCommand?objname=" + name + "&command_on=" + command);
+			else server.sendCommand("switch_button/addCommand?objname=" + name + "&command_off=" + command);
+			var parsed = JSON.parse(response);
+			if (parsed.status == 0) {
+				return true;
+			} else {
+				alert("Server error:\n" + parsed.description);
+				return false;
+			}
+		});
+	</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<div id="div-%Name%" style="width:100%;position:relative;background-color:white" class="mdl-shadow--2dp switchdiv">
+<h4 style="color:black">%Name%</h4>
+<div style="position:absolute;right:15px;top:10px">
+<label style="height:100%" class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-%Name%">
+<input type="checkbox" id="switch-%Name%" class="mdl-switch__input" onClick="onClick('%Name%')"  />
+<span class="mdl-switch__label"></span>
+</label>
+</div>
+
+<div class="option-heading" style="position:absolute;right:70px;top:17px">
+<div class="arrow-up"><button class="mdl-button mdl-js-button mdl-button--icon"><i class="material-icons">arrow_upward</i></button></div>
+<div class="arrow-down"><button style="transition:opacity 1s linear;" class="mdl-button mdl-js-button mdl-button--icon"><i class="material-icons">arrow_downward</i></button></div>
+</div>
+<div class="option-content">
+<br />
+  <div style="background-color: #262626">
+    <br />
+    <iframe src="standard-fragments/rgb_wheel.html?R=%ValueR%&G=%ValueG%&B=%ValueB%&id=%Name%" style="height:375px;width:100%;border:0;" id="frame-%Name%"></iframe>
+  </div>
+</div>
+<p style="color:gray">
+    %Description%
+</p>
+</div>

@@ -1,0 +1,61 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>#HomeAutomation</title>
+    <link href="/resources/material.min.css" type="text/css" rel="stylesheet">
+    <link href="/resources/style.css" type="text/css" rel="stylesheet">
+	<script src="/resources/jQuery.js"></script>
+	<script src="/resources/material.min.js"></script>
+	<script src="/resources/cookie.js"></script>
+	<script src="/resources/switchando.js"></script>
+</head>
+<body>
+
+    <div class="realborders">
+        <h4 style="text-align:center">Add a new room</h4>
+        <form id="form_add_room" action="/success.html">
+            <span class="span">Name of the room</span>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width:100%">
+                <input class="mdl-textfield__input" type="text" id="name">
+                <label class="mdl-textfield__label" for="name">Room name</label>
+            </div>
+            <br /><br />
+            <span class="span">Friendly names of the room, separated by comma (,)</span>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width:100%">
+                <input class="mdl-textfield__input" type="text" id="friendlynames">
+                <label class="mdl-textfield__label" for="name">Friendly names</label>
+            </div>
+            <br /><br />
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent" style="width:100%">
+                ADD ROOM
+            </button>
+        </form>
+    </div>
+    <script>
+        $('#form_add_room').submit(function () {
+            var name = $('#name').val();
+			var friendlynames = $('#friendlynames').val();
+            var server = new Switchando();
+			var response = server.sendCommand("room/createRoom?objname=" + name + "&setfriendlynames=" + friendlynames);
+			var parsed = JSON.parse(response);
+			if (parsed.status == 0) {
+				return true;
+			} else {
+				alert("Server error:\n" + parsed.description);
+				return false;
+			}
+        });
+        function addRoom(id) {
+            var name = id.name.value;
+            var friendlynames = id.friendlynames.value;
+            var hidden = id.ifhidden.checked;
+
+            
+            alert("Request sent! Please return back");
+}
+    </script>
+</body>
+</html>

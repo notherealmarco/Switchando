@@ -1,0 +1,294 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>#HomeAutomation</title>
+	<link href="/resources/material.min.css" type="text/css" rel="stylesheet">
+	<link href="/resources/style.css" type="text/css" rel="stylesheet">
+	<script src="/resources/jQuery.js"></script>
+	<script src="/resources/material.min.js"></script>
+	<script src="/resources/cookie.js"></script>
+	<script src="/resources/switchando.js"></script>
+	<script src="/resources/helpers/ui-helper.js"></script>
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+
+	<div class="realborders">
+		<h4 style="text-align:center">Add a new action</h4>
+		<form id="form" action="/success.html">
+			<span class="span">Name of the action</span>
+			<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width:100%">
+				<input class="mdl-textfield__input" type="text" id="name">
+				<label class="mdl-textfield__label" for="name">Action name</label>
+			</div>
+			<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width:100%">
+				<input class="mdl-textfield__input" type="text" id="description">
+				<label class="mdl-textfield__label" for="description">Action description</label>
+			</div>
+			<br /><br />
+
+			<div class="" style="margin:0">
+				<span class="span spanborder">Select the device</span><br />
+				<div>
+					<select style="width:100%;height:30px;" id="devices_select">
+						<option value="invalid" disabled selected>Choose the device</option>
+					</select>
+				</div>
+			</div>
+			<br />
+			<div class="" style="margin:0">
+				<span class="span spanborder">Select the function</span><br />
+				<div>
+					<select disabled style="width:100%;height:30px;" id="method_select">
+						<option value="invalid" disabled selected>Choose a function</option>
+					</select>
+				</div>
+			</div>
+			<br /><br />
+			<div id="method_properties">
+			</div>
+			<a onclick="addCondition()" class="mdl-button mdl-js-button mdl-js-ripple-effect box-text" style="font-size:18px;padding-left:3px;padding-right:5px">
+				<i class="material-icons">add_circle_outline</i> Add condition
+			</a>
+			<br /><br />
+			<div id="conditions">
+			</div>
+			<br /><br />
+			<button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent" style="width:100%">
+				ADD ACTION
+			</button>
+		</form>
+	</div>
+	<script>
+		var conditions = 0;
+		var method;
+		loadDevices();
+
+		$('#devices_select').change(function () {
+			var server = new Switchando();
+			var methods = server.sendCommand("method_interface/getMethods/device?objname=" + $('#devices_select').val());
+			var parsed = JSON.parse(methods);
+			if (parsed.status != 0) {
+				window.location.replace("server-error.html?json=" + methods);
+			} else {
+				var x = document.getElementById("method_select");
+				x.innerHTML = "";
+				x.removeAttribute("disabled");
+				var optionDefault = document.createElement("option");
+				optionDefault.text = "Choose a function";
+				optionDefault.disabled = true;
+				optionDefault.defaultSelected = true;
+				x.add(optionDefault);
+				for (index = 0; index < parsed.methods.length; ++index) {
+					var option = document.createElement("option");
+					option.text = parsed.methods[index].Description;
+					option.value = parsed.methods[index].Name;
+					method = parsed.methods[index];
+					x.add(option);
+				}
+			}
+		});
+
+
+		$('#method_select').change(function () {
+			var server = new Switchando();
+			var methods = server.sendCommand("method_interface/getMethods/device?objname=" + $('#devices_select').val());
+			var parsed = JSON.parse(methods);
+			if (parsed.status != 0) {
+				window.location.replace("server-error.html?json=" + methods);
+			} else {
+				for (index = 0; index < parsed.methods.length; ++index) {
+					if (parsed.methods[index].Name === $('#method_select').val()) {
+						method = parsed.methods[index];
+						var x = document.getElementById("method_properties");
+						x.innerHTML = "";
+						for (parametersIndex = 0; parametersIndex < parsed.methods[index].Parameters.length; ++parametersIndex) {
+							var field_id = "input-" + parsed.methods[index].Parameters[parametersIndex].Name;
+							var box = document.createElement("div");
+							var container = document.createElement("div");
+							container.className = "mdl-textfield mdl-js-textfield mdl-textfield--floating-label";
+							var span = document.createElement("span");
+							span.className = "mdl-textfield__label";
+							span.setAttribute("for", field_id);
+							span.innerHTML = parsed.methods[index].Parameters[parametersIndex].Name;
+							var input = document.createElement("input");
+							input.type = "text";
+							input.id = field_id;
+							input.className = "mdl-textfield__input";
+							var description = document.createElement("span");
+							description.className = "span";
+							description.innerHTML = parsed.methods[index].Parameters[parametersIndex].Description;
+							box.style = "display:inline-block;padding-right:16px";
+							box.appendChild(description);
+							box.appendChild(document.createElement("br"));
+							container.appendChild(input);
+							container.appendChild(span);
+							box.appendChild(container);
+							x.appendChild(box);
+						}
+					}
+				}
+			}
+			componentHandler.upgradeDom();
+		});
+
+		function addCondition() {
+			var server = new Switchando();
+			var box = document.createElement("div");
+			box.className = "mdl-shadow--2dp switchdiv";
+			box.style = "width:100%;position:relative;background-color:white;margin-bottom:20px";
+			box.id = "condition_div_" + conditions;
+			var only_if = document.createElement("span");
+			only_if.className = "box-text box-element";
+			only_if.innerText = "ONLY IF";
+			box.appendChild(only_if);
+			var select_device = document.createElement("select");
+			select_device.className = "box-element";
+			select_device.style = "width:250px;height:30px;border:0;color:gray";
+			select_device.id = "condition_div_" + conditions + "_device_select";
+			var option_default = document.createElement("option");
+			option_default.text = "Choose a device";
+			option_default.disabled = true;
+			option_default.defaultSelected = true;
+			select_device.add(option_default);
+			box.appendChild(select_device);
+			var select_property = document.createElement("select");
+			select_property.className = "box-element";
+			select_property.style = "width:250px;height:30px;border:0;color:gray";
+			select_property.id = "condition_div_" + conditions + "_property_select";
+			select_property.disabled = true;
+			option_default = document.createElement("option");
+			option_default.text = "Choose a property";
+			option_default.disabled = true;
+			option_default.defaultSelected = true;
+			select_property.add(option_default);
+			box.appendChild(select_property);
+			select_device.setAttribute("onchange", "conditionDeviceChange(" + "condition_div_" + conditions + "_device_select" + "," + "condition_div_" + conditions + "_property_select" + ")");
+			var only_if = document.createElement("span");
+			only_if.className = "box-text box-element";
+			only_if.innerText = "EQUALS TO";
+			box.appendChild(only_if);
+			var input_div = document.createElement("div");
+			input_div.className = "mdl-textfield mdl-js-textfield mdl-textfield--floating-label box-element";
+			var input_field = document.createElement("input");
+			input_field.className = "mdl-textfield__input";
+			input_field.type = "text";
+			input_field.id = "condition_div_" + conditions + "-value";
+			input_div.appendChild(input_field);
+			var input_span = document.createElement("span");
+			input_span.className = "mdl-textfield__label";
+			input_span.setAttribute("for", "condition_div_" + conditions + "-value");
+			input_span.innerText = "Value";
+			input_div.appendChild(input_span);
+			box.appendChild(input_div);
+			var float_div = document.createElement("div");
+			float_div.style = "position:absolute;right:15px;top:17px";
+			var a = document.createElement("a");
+			a.style = "transition:all ease-in-out .25s";
+			a.className = "mdl-button mdl-js-button mdl-button--icon";
+			a.id = "condition_div_" + conditions + "-delete_icon";
+			var divname = "condition_div_" + conditions;
+			a.setAttribute("onclick", "removeCondition(" + divname + ")");
+			var a_icon = document.createElement("i");
+			a_icon.className = "material-icons box-text";
+			a_icon.innerText = "delete";
+			a.appendChild(a_icon);
+			float_div.appendChild(a);
+			box.appendChild(float_div);
+			var x = document.getElementById("conditions");
+			x.appendChild(box);
+			var dvcs = server.sendCommand("get/devices");
+			var dvcs_data = JSON.parse(dvcs);
+			if (typeof dvcs_data.status !== 'undefined' && dvcs_data.status !== null) {
+				return;
+			} else {
+				for (index = 0; index < dvcs_data.length; ++index) {
+					var option = document.createElement("option");
+					option.text = dvcs_data[index].Name;
+					select_device.add(option);
+				}
+			}
+			componentHandler.upgradeDom();
+			conditions++;
+		}
+
+		function conditionDeviceChange(device, properties) {
+			var server = new Switchando();
+			var condition_device = device;
+			var condition_properties_json = server.sendCommand("object_interface/getProperties/device?objname=" + condition_device.value);
+			var condition_properties_data = JSON.parse(condition_properties_json);
+			if (condition_properties_data.status != 0) {
+				return false;
+			}
+			var condition_properties = condition_properties_data.properties;
+			var properties_field = properties;
+			properties_field.disabled = false;
+			properties_field.innerHTML = "";
+			for (index = 0; index < condition_properties.length; ++index) {
+				var condition_property_json = server.sendCommand("object_interface/getProperty?objname=" + condition_device.value + "&property=" + condition_properties[index]);
+				var condition_property_data = JSON.parse(condition_property_json);
+				option_default = document.createElement("option");
+				option_default.text = condition_property_data.property.Description;
+				option_default.value = condition_property_data.property.Name;
+				properties_field.add(option_default);
+			}
+		}
+
+		function removeCondition(parent) {
+			parent.id = "null";
+			parent.innerHTML = "";
+			parent.style = "display:none";
+			//conditions--;
+		}
+
+		$('#form').submit(function () {
+			var server = new Switchando();
+            var name = $('#name').val();
+			var description = $('#description').val();
+			var device = $('#devices_select').val();
+			var method_str = $('#method_select').val();
+			var parameters = {};
+			var conditions_arr = [];
+			for (index = 0; index < method.Parameters.length; ++index) {
+				var parameter_name = method.Parameters[index].Name;
+				var parameter_value = $('#input-' + parameter_name).val();
+				parameters[parameter_name] = parameter_value;
+			}
+			for (index = 0; index < conditions; ++index) {
+				var property_device = $('#condition_div_' + index + '_device_select').val();
+				if (property_device == null) continue;
+				var property_property = $('#condition_div_' + index + '_property_select').val();
+				var property_json = server.sendCommand("object_interface/getProperty?objname=" + property_device + "&property=" + property_property);
+				//todo: check exists
+				var property_data = JSON.parse(property_json);
+				//todo: check exists
+				var property = property_data.property;
+				var condition_value = $('#condition_div_' + index + '-value').val();
+				//todo: check exists
+				var property_final_json = JSON.stringify(property);
+				var jsonned = '{"Property":' + property_final_json + ',"Value":"' + condition_value + '","SwitchandoObject":"' + property_device + '"}'
+				conditions_arr.push(jsonned);
+			}
+			var condJson = "[";
+			for (index = 0; index < conditions_arr.length; ++index) {
+				condJson += conditions_arr[index];
+				if (index < conditions_arr.length - 1) condJson += ",";
+			}
+			condJson += "]";
+			var request = 'action/createAction?objname=' + name + '&description=' + description + '&device=' + device + '&method=' + method_str + '&parameters=' + JSON.stringify(parameters) + "&conditions=" + condJson;
+			//alert(request);
+			var response = server.sendCommand(request);
+			var parsed = JSON.parse(response);S
+			if (parsed.status == 0) {
+				return true;
+			} else {
+				alert("Server error:\n" + parsed.description);
+				return false;
+			}
+        });
+	</script>
+</body>
+</html>

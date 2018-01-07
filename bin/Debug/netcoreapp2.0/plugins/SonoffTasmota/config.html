@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>#HomeAutomation</title>
+	<link href="/resources/material.min.css" type="text/css" rel="stylesheet">
+	<link href="/resources/style.css" type="text/css" rel="stylesheet">
+	<script src="/resources/jQuery.js"></script>
+	<script src="/resources/material.min.js"></script>
+	<script src="/resources/cookie.js"></script>
+	<script src="/resources/switchando.js"></script>
+	<script src="/resources/helpers/ui-helper.js"></script>
+</head>
+<body>
+
+	<div class="realborders">
+		<h4 style="text-align:center">Add a new Sonoff switch</h4>
+		<form id="form" action="/success.html">
+			<span class="span">Name of the relay</span>
+			<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width:100%">
+				<input class="mdl-textfield__input" type="text" id="name">
+				<label class="mdl-textfield__label" for="name">Sonoff name</label>
+			</div>
+			<br /><br />
+			<span class="span">Friendly names of the light, separated by comma (,)</span>
+			<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width:100%">
+				<input class="mdl-textfield__input" type="text" id="friendlynames">
+				<label class="mdl-textfield__label" for="friendlynames">Friendly names</label>
+			</div>
+			<br /><br />
+			<span class="span">Description of the light</span>
+			<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width:100%">
+				<input class="mdl-textfield__input" type="text" id="description">
+				<label class="mdl-textfield__label" for="description">Description</label>
+			</div>
+			<br /><br />
+			<div>
+				<span class="span spanborder">Tasmota MQTT topic (not full topic)</span><br />
+				<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width:100%">
+					<input class="mdl-textfield__input" type="text" id="pin">
+					<label class="mdl-textfield__label" for="pin">MQTT Topic</label>
+				</div>
+			</div>
+			<br /><br />
+			<div>
+				<span class="span spanborder">Tasmota channel (only for multi-channel Sonoff, write 1 for the Sonoff Basic)</span><br />
+				<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--1-col">
+					<input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="channel" value="1">
+					<label class="mdl-textfield__label" for="channel">Channel</label>
+					<span class="mdl-textfield__error">Input is not a number!</span>
+				</div>
+			</div>
+			<br /><br />
+			<span class="span spanborder">Select the room</span><br />
+			<div>
+				<select style="width:100%;height:30px;" id="room_select">
+					<option value="Choose the room" disabled>Choose the room</option>
+				</select>
+			</div>
+			<br /><br />
+			<button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" style="width:100%">
+				ADD Sonoff SWITCH
+			</button>
+		</form>
+	</div>
+	<script>
+		loadRooms();
+		$('#form').submit(function () {
+			var name = $('#name').val();
+			var friendlynames = $('#friendlynames').val();
+			var description = $('#description').val();
+			var pin = $('#pin').val();
+			var channel = $('#channel').val();
+			var room = $('#room_select').val();
+			var server = new Switchando();
+			var response = server.sendCommand("SONOFF_TASMOTA_SWITCH/createSonoff?objname=" + name + "&setfriendlynames=" + friendlynames + "&topic=" + pin + "&description=" + description + "&channel=" + channel + "&room=" + room);
+			var parsed = JSON.parse(response);
+			if (parsed.status == 0) {
+				return true;
+			} else {
+				alert("Server error:\n" + parsed.description);
+				return false;
+			}
+		});
+	</script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>#HomeAutomation</title>
+	<link href="/resources/material.min.css" type="text/css" rel="stylesheet">
+	<link href="/resources/style.css" type="text/css" rel="stylesheet">
+	<script src="/resources/jQuery.js"></script>
+	<script src="/resources/material.min.js"></script>
+	<script src="/resources/cookie.js"></script>
+	<script src="/resources/switchando.js"></script>
+</head>
+<body>
+	<div class="realborders">
+		<h4 style="text-align:center">Add a new user</h4>
+		<form id="form_add_room" action="/success.html">
+			<span class="span">Username</span>
+			<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width:100%">
+				<input class="mdl-textfield__input" type="text" id="name">
+				<label class="mdl-textfield__label" for="name">Username</label>
+			</div>
+			<br /><br />
+			<span class="span">Password</span>
+			<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width:100%">
+				<input class="mdl-textfield__input" type="text" id="password">
+				<label class="mdl-textfield__label" for="password">Password</label>
+			</div>
+			<br /><br />
+			<span class="span spanborder">User type</span><br />
+			<div id="usertp">
+				<div>
+					<label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="btnAdmin">
+						<input type="radio" id="btnAdmin" class="mdl-radio__button" name="createbtn" value="ADMINISTRATOR" checked>
+						<span class="mdl-radio__label">Admin (same permissions of admin user)</span>
+					</label>
+				</div>
+				<div>
+					<label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="btnStandard">
+						<input type="radio" id="btnStandard" class="mdl-radio__button" name="createbtn" value="STANDARD">
+						<span class="mdl-radio__label">Standard (full permissions but is not able to adjust settings)</span>
+					</label>
+				</div>
+				<div>
+					<label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="btnRestricted">
+						<input type="radio" id="btnRestricted" class="mdl-radio__button" name="createbtn" value="RESTRICTED">
+						<span class="mdl-radio__label">Restricted (only given permissions)</span>
+					</label>
+				</div>
+			</div>
+			<br /><br />
+			<button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent" style="width:100%">
+				ADD ROOM
+			</button>
+		</form>
+	</div>
+	<script>
+        $('#form_add_room').submit(function () {
+            var name = $('#name').val();
+			var passwd = $('#password').val();
+			var usertp = document.querySelector('input[name="createbtn"]:checked').value;
+            var server = new Switchando();
+			var response = server.sendCommand("user/createUser?username=" + name + "&password=" + passwd + "&user_type=" + usertp);
+			var parsed = JSON.parse(response);
+			if (parsed.status == 0) {
+				return true;
+			} else {
+				alert("Server error:\n" + parsed.description);
+				return false;
+			}
+        });
+	</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Switchando": {
+      "commandName": "Project",
+      "commandLineArgs": "--nogpio"
+    }
+  }
+}
