@@ -1,5 +1,6 @@
 ﻿using Homeautomation.GPIO;
 using HomeAutomation.Application.ConfigRetriver;
+using HomeAutomation.Events;
 using HomeAutomation.Network;
 using HomeAutomation.Network.Getters;
 using HomeAutomation.Network.WebUI;
@@ -15,6 +16,7 @@ using HomeAutomation.Rooms;
 using HomeAutomation.Scenarios;
 using HomeAutomation.Users;
 using HomeAutomation.Utilities;
+using Switchando.Events;
 using System;
 using System.IO;
 using System.Reflection;
@@ -32,7 +34,7 @@ namespace HomeAutomationCore
                 noGPIO = true;
             }
             var server = new HomeAutomationServer("A Switchando family", "password");
-            
+            Console.WriteLine("ciao");
             if (!noGPIO) Console.WriteLine(PIGPIO.pigpio_start(null, null));
 
             Console.WriteLine("Welcome to Switchando Automation 4 BETA 4 (Bountiful Update) Server by Marco Realacci!");
@@ -71,6 +73,7 @@ namespace HomeAutomationCore
             new NetworkInterface("SCENARIO", Scenario.SendParameters);
             new NetworkInterface("GET", ObjectGetter.SendParameters);
             new NetworkInterface("USER", Identity.SendParameters);
+            new NetworkInterface("EVENTS", EventsManager.SendParameters);
 
             var gpio_switch = new NetworkInterface("GENERIC_SWITCH", Relay.SendParameters);
             new ObjectInterface(gpio_switch, "Switch", typeof(uint), "ON / OFF state");
@@ -117,6 +120,10 @@ namespace HomeAutomationCore
             w_chgVal.AddParameter(new MethodParameter("objname", typeof(string), "Device name"));
             w_chgVal.AddParameter(new MethodParameter("value", typeof(string), "Brightness (0-255)"));
             w_chgVal.AddParameter(new MethodParameter("dimmer", typeof(string), "Dimmer transition (in ms)"));
+
+            //testarea
+            new Event("switchon", "Switch ON", w);
+            //
 
             new NetworkInterface("BUTTON", Button.SendParameters);
             new NetworkInterface("SWITCH_BUTTON", SwitchButton.SendParameters);

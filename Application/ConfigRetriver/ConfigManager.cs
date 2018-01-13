@@ -72,7 +72,14 @@ namespace HomeAutomation.ConfigRetriver
             {
                 try
                 {
-                    return (T)Convert.ChangeType(value, typeof(T));
+                    try
+                    {
+                        return ((dynamic)value).ToObject<T>();
+                    }
+                    catch
+                    {
+                        return (T)Convert.ChangeType(value, typeof(T));
+                    }
                 }
                 catch
                 {

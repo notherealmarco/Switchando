@@ -5,6 +5,7 @@ using HomeAutomation.Rooms;
 using HomeAutomation.Users;
 using HomeAutomationCore;
 using HomeAutomationCore.Client;
+using Switchando.Events;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,11 +27,14 @@ namespace HomeAutomation.Objects.Lights
         public string[] FriendlyNames;
         public string Description;
 
+        private Event OnSwitchOn;
+
         public string ObjectType = "LIGHT_GPIO_W";
         public string ObjectModel = "DIMMABLE_LIGHT";
 
         public WLight()
         {
+            this.OnSwitchOn = HomeAutomationServer.server.Events.GetEvent(this, "switchon"); 
         }
         public WLight(Client client, string Name, uint pin, string description, string[] FriendlyNames)
         {
@@ -43,6 +47,7 @@ namespace HomeAutomation.Objects.Lights
             this.Value = 255;
             this.Brightness = 100;
             this.FriendlyNames = FriendlyNames;
+            this.OnSwitchOn = HomeAutomationServer.server.Events.GetEvent(this, "switchon");
 
             if (Client.Name.Equals("local"))
             {
@@ -179,6 +184,7 @@ namespace HomeAutomation.Objects.Lights
         public void Start()
         {
             Pause(true);
+            OnSwitchOn.Throw(this);
         }
         public void Stop()
         {

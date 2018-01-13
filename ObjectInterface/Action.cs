@@ -159,6 +159,17 @@ namespace HomeAutomation.ObjectInterfaces
                 data.Object.action = action;
                 return data.Json();
             }
+            if (method.Equals("getActions"))
+            {
+                List<string> actions = new List<string>();
+                foreach(Action action in HomeAutomationServer.server.Actions)
+                {
+                    actions.Add(action.Name);
+                }
+                ReturnStatus data = new ReturnStatus(CommonStatus.SUCCESS);
+                data.Object.actions = actions;
+                return data.Json();
+            }
 
             if (method.StartsWith("runAction/name"))
             {

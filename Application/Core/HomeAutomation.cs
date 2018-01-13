@@ -1,6 +1,7 @@
 ﻿using HomeAutomation.Application.ConfigRetriver;
 using HomeAutomation.ConfigRetriver;
 using HomeAutomation.Core;
+using HomeAutomation.Events;
 using HomeAutomation.Network;
 using HomeAutomation.ObjectInterfaces;
 using HomeAutomation.Objects;
@@ -28,6 +29,7 @@ namespace HomeAutomationCore
         public List<Room> Rooms { get; set; }
         public List<Scenario> Scenarios { get; set; }
         public List<HomeAutomation.ObjectInterfaces.Action> Actions { get; set; }
+        public EventsManager Events { get; set; }
         public List<Identity> Identities { get; set; }
         public MQTTClient MQTTClient { get; set; }
 
@@ -58,7 +60,8 @@ namespace HomeAutomationCore
             ObjectNetwork = new ObjectNetwork();
             ObjectNetwork.MethodInterfaces = new List<MethodInterface>();
             ObjectNetwork.ObjectInterfaces = new List<ObjectInterface>();
-
+            Events = new EventsManager();
+            
             Actions = Database.Get<dynamic>("switchando.actions").ToObject<List<HomeAutomation.ObjectInterfaces.Action>>();
             Identities = Database.Get<dynamic>("switchando.identities").ToObject<List<Identity>>();
             MQTTClient = Database.Get<dynamic>("switchando.mqttclient").ToObject<MQTTClient>();
@@ -78,6 +81,7 @@ namespace HomeAutomationCore
             Database.Put("switchando.actions", Actions);
             Database.Put("switchando.identities", Identities);
             Database.Put("switchando.mqttclient", MQTTClient);
+            Events.Save();
             Database.Save();
         }
         public string GetPassword()
