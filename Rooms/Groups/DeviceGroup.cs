@@ -15,44 +15,48 @@ namespace HomeAutomation.Rooms
     public class DeviceGroup : ISwitch
     {
         public string Name;
+        public string Description = "";
         public string[] FriendlyNames;
-        public List<ISwitch> Objects;
+        public List<string> Objects;
         public bool Hidden;
         public bool Switch;
         public string ObjectType = "DEVICE_GROUP";
         public string ObjectModel = "SWITCH";
-        public DeviceGroup(string name, string[] friendlyNames, bool hidden)
+        public string ClientName = "local";
+        public DeviceGroup(string name, string description, string[] friendlyNames, bool hidden)
         {
             this.Hidden = hidden;
             this.Name = name;
             this.FriendlyNames = friendlyNames;
-            this.Objects = new List<ISwitch>();
+            this.Description = description;
+            this.Objects = new List<string>();
+            HomeAutomationServer.server.Objects.Add(this);
             //HomeAutomationServer.server.Objects.Add(this);
 
-            foreach (NetworkInterface netInt in HomeAutomationServer.server.NetworkInterfaces)
+            /*foreach (NetworkInterface netInt in HomeAutomationServer.server.NetworkInterfaces)
             {
                 if (netInt.Id.Equals("device_group")) return;
             }
             NetworkInterface.Delegate requestHandler;
             requestHandler = SendParameters;
-            NetworkInterface networkInterface = new NetworkInterface("device_group", requestHandler);
+            NetworkInterface networkInterface = new NetworkInterface("device_group", requestHandler);*/
         }
         public void AddItem(ISwitch homeAutomationObject)
         {
-            this.Objects.Add(homeAutomationObject);
-
-            foreach(ISwitch obj in Objects)
-            {
-                
-            }
+            this.Objects.Add(homeAutomationObject.GetName());
         }
 
         public void SwitchGroup(bool status)
         {
-            foreach (ISwitch item in Objects)
+            foreach (string sitem in Objects)
             {
-                if (status) ((ISwitch)item).Start(); else ((ISwitch)item).Stop();
-                Thread.Sleep(200);
+                IObject oitem = ObjectFactory.FromString(sitem);
+                if (oitem is ISwitch)
+                {
+                    ISwitch item = (ISwitch)oitem;
+                    if (status) ((ISwitch)item).Start(); else ((ISwitch)item).Stop();
+                    Thread.Sleep(200);
+                }
             }
         }
         public void Start()
@@ -73,7 +77,7 @@ namespace HomeAutomation.Rooms
         }
         public NetworkInterface GetInterface()
         {
-            return NetworkInterface.FromId("device_group");
+            return NetworkInterface.FromId(ObjectType);
         }
         public string GetObjectType()
         {
@@ -90,8 +94,9 @@ namespace HomeAutomation.Rooms
         public void Color(uint R, uint G, uint B, int dimmer)
         {
             //HomeAutomationServer.server.Telegram.Log("Changing color of room `" + this.Name + "`.");
-            foreach (ISwitch item in Objects)
+            foreach (string sitem in Objects)
             {
+                IObject item = ObjectFactory.FromString(sitem);
                 if (item is IColorableLight)
                 {
                     ((IColorableLight)item).Set(R, G, B, dimmer);
@@ -102,8 +107,9 @@ namespace HomeAutomation.Rooms
         public void Dimm(uint percentace, int dimmer)
         {
             //HomeAutomationServer.server.Telegram.Log("Dimming room `" + this.Name + "` to `" + percentace + "%`" + "(" + dimmer + "ms).");
-            foreach (ISwitch item in Objects)
+            foreach (string sitem in Objects)
             {
+                IObject item = ObjectFactory.FromString(sitem);
                 if (item is ILight)
                 {
                     ((ILight)item).Dimm(percentace, dimmer);
@@ -132,6 +138,87 @@ namespace HomeAutomation.Rooms
         }
         public static string SendParameters(string method, string[] request, Identity login)
         {
+            if (method.Equals("createGroup"))
+            {
+                if (!login.IsAdmin()) return new ReturnStatus(CommonStatus.ERROR_FORBIDDEN_REQUEST, "Insufficient permissions").Json();
+                string name = null;
+                string[] friendlyNames = null;
+                string description = null;
+                bool hidden = false;
+                Room room = null;
+
+                foreach (string cmd in request)
+                {
+                    string[] command = cmd.Split('=');
+                    if (command[0].Equals("interface")) continue;
+                    switch (command[0])
+                    {
+                        case "objname":
+                            name = command[1];
+                            break;
+                        case "description":
+                            description = command[1];
+                            break;
+                        case "setfriendlynames":
+                            string names = command[1];
+                            friendlyNames = names.Split(',');
+                            break;
+                        case "hidden":
+                            hidden = bool.Parse(command[1]);
+                            break;
+                        case "room":
+                            foreach (Room stanza in HomeAutomationServer.server.Rooms)
+                            {
+                                if (stanza.Name.ToLower().Equals(command[1].ToLower()))
+                                {
+                                    room = stanza;
+                                }
+                            }
+                            break;
+                    }
+                }
+                if (room == null) return new ReturnStatus(CommonStatus.ERROR_NOT_FOUND, "Room not found").Json();
+                DeviceGroup relay = new DeviceGroup(name, description, friendlyNames, hidden);
+                room.AddItem(relay);
+                ReturnStatus data = new ReturnStatus(CommonStatus.SUCCESS);
+                data.Object.relay = relay;
+                return data.Json();
+            }
+            if (method.Equals("addDevice"))
+            {
+                if (!login.IsAdmin()) return new ReturnStatus(CommonStatus.ERROR_FORBIDDEN_REQUEST, "Insufficient permissions").Json();
+                string name = null;
+                string device = null;
+
+                foreach (string cmd in request)
+                {
+                    string[] command = cmd.Split('=');
+                    if (command[0].Equals("interface")) continue;
+                    switch (command[0])
+                    {
+                        case "objname":
+                            name = command[1];
+                            break;
+                        case "device":
+                            device = command[1];
+                            break;
+                    }
+                }
+                if (name == null || device == null) return new ReturnStatus(CommonStatus.ERROR_NOT_FOUND, "Device not found").Json();
+                IObject dvcgrp = ObjectFactory.FromString(name);
+                if (dvcgrp is DeviceGroup)
+                {
+                    DeviceGroup dc = (DeviceGroup)dvcgrp;
+                    IObject dvc = ObjectFactory.FromString(device);
+                    if (dvc is ISwitch)
+                    {
+                        ISwitch toAdd = (ISwitch)dvc;
+                        dc.AddItem(toAdd);
+                        return new ReturnStatus(CommonStatus.SUCCESS).Json();
+                    }
+                    else return new ReturnStatus(CommonStatus.ERROR_BAD_REQUEST, "Device is not switchable").Json();
+                }
+            }
             if (method.Equals("changeColor/RGB"))
             {
                 DeviceGroup room = null;
@@ -304,6 +391,16 @@ namespace HomeAutomation.Rooms
                 room.Color(R, G, B, dimmer);
             }
             return "";
+        }
+        public static void Setup(Room room, dynamic device)
+        {
+            DeviceGroup light = new DeviceGroup(device.Name, device.Description, Array.ConvertAll(((List<object>)device.FriendlyNames).ToArray(), x => x.ToString()), device.Hidden);
+            light.Switch = device.Switch;
+            foreach (string dvc in device.Objects)
+            {
+                light.Objects.Add(dvc);
+            }
+            room.AddItem(light);
         }
     }
 }

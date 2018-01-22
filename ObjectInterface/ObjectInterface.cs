@@ -66,7 +66,7 @@ namespace HomeAutomation.ObjectInterfaces
             {
                 if (networkInterface.Id.Equals(property.Interface))
                 {
-                    return property;
+                    if (property.Name.Equals(propName)) return property;
                 }
             }
             return null;

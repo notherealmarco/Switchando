@@ -19,8 +19,8 @@ function Switchando() {
 		this.login_username = username;
 		this.login_password = password;
 		if (keep_logged) {
-			Cookies.set('b0689', username);
-			Cookies.set('1a1dc', this.generateToken(username, password));
+			Cookies.set('b0689', username, { expires: 30 });
+			Cookies.set('1a1dc', this.generateToken(username, password), { expires: 30 });
 		} else {
 			sessionStorage.setItem('b0689', username);
 			sessionStorage.setItem('1a1dc', this.generateToken(username, password));
@@ -162,8 +162,8 @@ function Switchando() {
 		login_password = get('login_password');
 		login_using_token = false;
 
-		Cookies.set('b0689', login_username);
-		Cookies.set('1a1dc', this.generateToken(login_username, login_password));
+		Cookies.set('b0689', login_username, { expires: 30 });
+		Cookies.set('1a1dc', this.generateToken(login_username, login_password), { expires: 30 });
 	}
 }
 function get(name) {

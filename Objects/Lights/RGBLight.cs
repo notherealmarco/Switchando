@@ -24,7 +24,7 @@ namespace HomeAutomation.Objects.Lights
         public uint ValueB { get; set; }
         public uint Brightness { get; set; }
 
-        public bool Switch;
+        public bool Switch { get; set; }
 
         public string Name;
         public string[] FriendlyNames;

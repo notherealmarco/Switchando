@@ -22,9 +22,6 @@ namespace HomeAutomation.Objects.Fans
         public bool Switch;
         public string Description;
 
-        public event SwitchEventHandler OnSwitch;
-        public delegate void SwitchEventHandler(Relay o);
-
         public string ObjectType = "GENERIC_SWITCH";
         public string ObjectModel = "SWITCH";
 
@@ -62,7 +59,6 @@ namespace HomeAutomation.Objects.Fans
                 UploadValues(true);
             }
             Switch = true;
-            OnSwitch(this);
         }
         public void Stop()
         {
@@ -77,7 +73,6 @@ namespace HomeAutomation.Objects.Fans
                 UploadValues(false);
             }
             Switch = false;
-            OnSwitch(this);
         }
         public bool IsOn()
         {

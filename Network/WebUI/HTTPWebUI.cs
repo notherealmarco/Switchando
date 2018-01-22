@@ -170,9 +170,9 @@ namespace HomeAutomation.Network
             if (filename.Contains("plugins/"))
             {
                 filename = filename.Substring("plugins/".Length);
-                _rootDirectory = "plugins";
+                _rootDirectory = Utilities.Paths.GetServerPath() + "/plugins";
                 filename = Path.Combine(_rootDirectory, filename);
-                _rootDirectory = "web";
+                _rootDirectory = Utilities.Paths.GetServerPath() + "/web";
             }
             else if (filename.Contains("switchando-fragments/"))
             {

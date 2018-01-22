@@ -41,23 +41,72 @@ namespace HomeAutomationCore
 
             if (HomeAutomationServer.server.MQTTClient == null)
             {
-                Console.WriteLine("\n\nIt seems MQTT is not setted up yet, write down your MQTT broker's address:");
-                string addr = Console.ReadLine();
-                if (!string.IsNullOrEmpty(addr))
+                if (File.Exists(Paths.GetServerPath() + "/autoconfigscript.txt"))
                 {
-                    Console.WriteLine("MQTT broker username (leave it blank if your broker doesn't need login):");
-                    string uname = Console.ReadLine();
-                    if (!string.IsNullOrEmpty(uname))
+                    string file = File.ReadAllText(Paths.GetServerPath() + "/autoconfigscript.txt");
+                    string[] data = file.Split(new[] { "\r\n", "\r", "\n" },StringSplitOptions.None);
+                    string mqttAddr = null;
+                    string mqttUser = null;
+                    string mqttPasswd = null;
+                    string adminPasswd = null;
+                    foreach (string s in data)
                     {
-                        Console.WriteLine("MQTT broker password:");
-                        string passwd = Console.ReadLine();
-                        MQTTClient mqtt = new MQTTClient(addr, uname, passwd);
+                        if (!s.Contains("=")) continue;
+                        string[] str = s.Split('=');
+                        string var = str[0];
+                        string value = s.Substring(var.Length + 1);
+                        if (var.Equals("mqtt-address"))
+                        {
+                            mqttAddr = value;
+                        }
+                        if (var.Equals("mqtt-username"))
+                        {
+                            mqttUser = value;
+                        }
+                        if (var.Equals("mqtt-password"))
+                        {
+                            mqttPasswd = value;
+                        }
+                        if (var.Equals("admin-password"))
+                        {
+                            adminPasswd = value;
+                        }
+                    }
+                    if (!string.IsNullOrEmpty(mqttUser) && !string.IsNullOrEmpty(mqttPasswd))
+                    {
+                        MQTTClient mqtt = new MQTTClient(mqttAddr, mqttUser, mqttPasswd);
                         HomeAutomationServer.server.MQTTClient = mqtt;
                     }
                     else
                     {
-                        MQTTClient mqtt = new MQTTClient(addr);
+                        MQTTClient mqtt = new MQTTClient(mqttAddr);
                         HomeAutomationServer.server.MQTTClient = mqtt;
+                    }
+                    if (Identity.GetAdminUser() == null)
+                    {
+                        new Identity("admin", adminPasswd, Identity.UserType.ADMINISTRATOR);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("\n\nIt seems MQTT is not setted up yet, write down your MQTT broker's address:");
+                    string addr = Console.ReadLine();
+                    if (!string.IsNullOrEmpty(addr))
+                    {
+                        Console.WriteLine("MQTT broker username (leave it blank if your broker doesn't need login):");
+                        string uname = Console.ReadLine();
+                        if (!string.IsNullOrEmpty(uname))
+                        {
+                            Console.WriteLine("MQTT broker password:");
+                            string passwd = Console.ReadLine();
+                            MQTTClient mqtt = new MQTTClient(addr, uname, passwd);
+                            HomeAutomationServer.server.MQTTClient = mqtt;
+                        }
+                        else
+                        {
+                            MQTTClient mqtt = new MQTTClient(addr);
+                            HomeAutomationServer.server.MQTTClient = mqtt;
+                        }
                     }
                 }
             }
@@ -74,6 +123,9 @@ namespace HomeAutomationCore
             new NetworkInterface("GET", ObjectGetter.SendParameters);
             new NetworkInterface("USER", Identity.SendParameters);
             new NetworkInterface("EVENTS", EventsManager.SendParameters);
+
+            new NetworkInterface("DEVICE_GROUP", DeviceGroup.SendParameters);
+            new SetupTool("DEVICE_GROUP", DeviceGroup.Setup);
 
             var gpio_switch = new NetworkInterface("GENERIC_SWITCH", Relay.SendParameters);
             new ObjectInterface(gpio_switch, "Switch", typeof(uint), "ON / OFF state");

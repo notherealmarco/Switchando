@@ -15,7 +15,7 @@ namespace HomeAutomation.Network
     {
         private MqttClient client;
         public delegate void Delegate(MqttClient sender, MqttMsgPublishEventArgs e);
-        private Dictionary<string, Delegate> CustomTopics;
+        private List<KeyValuePair<string, Delegate>> CustomTopics;
         private List<string> Ignore;
         public string Username;
         public string Password;
@@ -23,7 +23,7 @@ namespace HomeAutomation.Network
         public MQTTClient()
         {
             Ignore = new List<string>();
-            this.CustomTopics = new Dictionary<string, Delegate>();
+            this.CustomTopics = new List<KeyValuePair<string, Delegate>>();
         }
         public MQTTClient(string address, string username, string password)
         {
@@ -43,7 +43,7 @@ namespace HomeAutomation.Network
             byte[] qosLevels = { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE };
             client.Subscribe(topic, qosLevels);
             Publish("switchando/clients", "server-online");
-            this.CustomTopics = new Dictionary<string, Delegate>();
+            this.CustomTopics = new List<KeyValuePair<string, Delegate>>();
         }
         public MQTTClient(string address)
         {
@@ -62,7 +62,7 @@ namespace HomeAutomation.Network
             byte[] qosLevels = { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE };
             client.Subscribe(topic, qosLevels);
             Publish("switchando/clients", "server-online");
-            this.CustomTopics = new Dictionary<string, Delegate>();
+            this.CustomTopics = new List<KeyValuePair<string, Delegate>>();
         }
         public void Init()
         {
@@ -99,8 +99,13 @@ namespace HomeAutomation.Network
         public void Subscribe(string topic, Delegate method)
         {
             byte[] qosLevels = { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE };
-            client.Subscribe(new string[] { topic }, qosLevels);
-            this.CustomTopics.Add(topic, method);
+            bool addTopic = true;
+            foreach(KeyValuePair<string, Delegate> kvp in CustomTopics)
+            {
+                if (kvp.Key.Equals(topic)) addTopic = false;
+            }
+            if (addTopic) client.Subscribe(new string[] { topic }, qosLevels);
+            this.CustomTopics.Add(new KeyValuePair<string, Delegate>(topic, method));
         }
         public void Unsubscribe(string topic)
         {
@@ -121,11 +126,13 @@ namespace HomeAutomation.Network
             Console.Write(e.Topic + " -> ");
             Console.WriteLine(Encoding.UTF8.GetChars(e.Message));
 
-            Delegate topicHandler;
-            if (CustomTopics.TryGetValue(e.Topic, out topicHandler))
+            foreach (KeyValuePair<string, Delegate> kvp in CustomTopics)
             {
-                topicHandler((MqttClient)sender, e);
-                return;
+                if (kvp.Key.Equals(e.Topic))
+                {
+                    kvp.Value((MqttClient)sender, e);
+                    return;
+                }
             }
             string message = Encoding.UTF8.GetString(e.Message);
             if (message.StartsWith("client_handshake"))

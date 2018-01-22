@@ -12,7 +12,7 @@ namespace Switchando.Events
         public string Name;
         public string Description;
         public string DeviceType;
-        public Dictionary<string, string> Actions;
+        public List<KeyValuePair<string, string>> Actions;
 
         public Event() { }
         public Event(string name, string description, NetworkInterface deviceType)
@@ -20,7 +20,7 @@ namespace Switchando.Events
             this.Name = name;
             this.Description = description;
             this.DeviceType = deviceType.Id;
-            this.Actions = new Dictionary<string, string>();
+            this.Actions = new List<KeyValuePair<string, string>>();
             HomeAutomationServer.server.Events.RegisterEvent(this);
         }
         public void Throw(IObject device)
@@ -32,11 +32,27 @@ namespace Switchando.Events
         }
         public void AddAction(IObject device, Action action)
         {
-            if (!Actions.ContainsKey(device.GetName())) Actions.Add(device.GetName(), action.Name);
+            bool exists = false;
+            foreach(KeyValuePair<string, string> kvp in Actions)
+            {
+                if (kvp.Key.Equals(device.GetName()))
+                {
+                    if (kvp.Value.Equals(action.Name)) exists = true;
+                }
+            }
+            if (!exists) Actions.Add(new KeyValuePair<string, string>(device.GetName(), action.Name));
         }
         public void RemoveAction(IObject device, Action action)
         {
-            if (Actions.ContainsKey(device.GetName())) Actions.Remove(action.Name);
+            KeyValuePair<string, string> toRemove = new KeyValuePair<string, string>("", "");
+            foreach (KeyValuePair<string, string> kvp in Actions)
+            {
+                if (kvp.Key.Equals(device.GetName()))
+                {
+                    if (kvp.Value.Equals(action.Name)) toRemove = kvp;
+                }
+            }
+            if (!toRemove.Key.Equals("")) Actions.Remove(toRemove);
         }
         public NetworkInterface GetInterface()
         {

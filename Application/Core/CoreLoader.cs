@@ -48,28 +48,33 @@ namespace HomeAutomation.Core
 
                 foreach (dynamic device in objs)
                 {
-                    Console.WriteLine(device.ClientName + " <<->> " + device.Name + " -> " + device.ObjectType.ToString());
+                    Console.WriteLine(device.Name + " -> " + device.ObjectType.ToString());
 
                     Client client = null;
 
                     bool toAdd = true;
-
-                    if (device.ClientName != null)
+                    try
                     {
-                        foreach (Client clnt in HomeAutomationServer.server.Clients)
+                        if (device.ClientName != null)
                         {
-                            if (clnt.Name.Equals(device.ClientName))
+                            foreach (Client clnt in HomeAutomationServer.server.Clients)
                             {
-                                client = clnt;
-                                toAdd = false;
+                                if (clnt.Name.Equals(device.ClientName))
+                                {
+                                    client = clnt;
+                                    toAdd = false;
+                                }
+                            }
+                            if (toAdd) client = new Client(null, 0, (string)device.ClientName);
+
+                            if (HomeAutomationServer.server.Clients.Count == 0)
+                            {
+                                client = new Client(null, 0, device.ClientName);
                             }
                         }
-                        if (toAdd) client = new Client(null, 0, (string)device.ClientName);
-
-                        if (HomeAutomationServer.server.Clients.Count == 0)
-                        {
-                            client = new Client(null, 0, device.ClientName);
-                        }
+                    }
+                    catch
+                    {
                     }
                     bool exit = false;
                     foreach (IObject iobj in HomeAutomationServer.server.Objects)

@@ -62,13 +62,32 @@ namespace HomeAutomationCore
             ObjectNetwork.ObjectInterfaces = new List<ObjectInterface>();
             Events = new EventsManager();
             
-            Actions = Database.Get<dynamic>("switchando.actions").ToObject<List<HomeAutomation.ObjectInterfaces.Action>>();
-            Identities = Database.Get<dynamic>("switchando.identities").ToObject<List<Identity>>();
-            MQTTClient = Database.Get<dynamic>("switchando.mqttclient").ToObject<MQTTClient>();
+            if (Database.Get<List<HomeAutomation.ObjectInterfaces.Action>>("switchando.actions") == null)
+            {
+                Actions = new List<HomeAutomation.ObjectInterfaces.Action>();
+            }
+            else
+            {
+                Actions = Database.Get<List<HomeAutomation.ObjectInterfaces.Action>>("switchando.actions");
+            }
 
-            if (Actions == null) Actions = new List<HomeAutomation.ObjectInterfaces.Action>();
-            if (Identities == null) Identities = new List<Identity>();
+            if (Database.Get<List<Identity>>("switchando.identities") == null)
+            {
+                Identities = new List<Identity>();
+            }
+            else
+            {
+                Identities = Database.Get<List<Identity>>("switchando.identities");
+            }
 
+            if (Database.Get<MQTTClient>("switchando.mqttclient") == null)
+            {
+                Identities = new List<Identity>();
+            }
+            else
+            {
+                Identities = Database.Get<List<Identity>>("switchando.identities");
+            }
         }
         public void LoadCore()
         {

@@ -139,7 +139,7 @@ namespace HomeAutomation.Users
                 }
                 else
                 {
-                    if (this.Tokens.Count != 0) this.Tokens = new List<string>();
+                    //if (this.Tokens.Count != 0) this.Tokens = new List<string>();
                     return false;
                 }
             }
@@ -147,18 +147,19 @@ namespace HomeAutomation.Users
         }
         public bool SessionLogin(string name, string token, string IP)
         {
+            var ipNoPort = IP.Split(':')[0];
             if (name.Equals(this.Name))
             {
                 if (this.Tokens.Contains(token))
                 {
-                    IPs.Add(IP);
+                    if (!IPs.Contains(ipNoPort)) IPs.Add(ipNoPort);
                     return true;
                 }
                 else
                 {
-                    if (!IPs.Contains(IP))
+                    if (!IPs.Contains(ipNoPort))
                     {
-                        if (this.Tokens.Count != 0) this.Tokens = new List<string>();
+                        //if (this.Tokens.Count != 0) this.Tokens = new List<string>();
                     }
                     return false;
                 }

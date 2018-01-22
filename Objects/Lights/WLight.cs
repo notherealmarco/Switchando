@@ -20,12 +20,13 @@ namespace HomeAutomation.Objects.Lights
         public string ClientName;
 
         public uint Pin;
-        public uint Value, Brightness;
-        public bool Switch;
+        public uint Value { get; set; }
+        public uint Brightness { get; set; }
+        public bool Switch { get; set; }
 
-        public string Name;
-        public string[] FriendlyNames;
-        public string Description;
+        public string Name { get; set; }
+        public string[] FriendlyNames { get; set; }
+        public string Description { get; set; }
 
         private Event OnSwitchOn;
 
