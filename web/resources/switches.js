@@ -134,18 +134,19 @@ async function loadSwitches(json) {
         if (parsed[index].Hidden == true) continue;
         var mainSwitch = false;
         for (objectIndex = 0; objectIndex < parsed[index].Objects.length; ++objectIndex) {
-            if (parsed[index].Objects[objectIndex].Switch != undefined) {
-                if (parsed[index].Objects[objectIndex].Switch == true) {
-                    var myCheckbox = document.getElementById('switch-' + parsed[index].Objects[objectIndex].Name);
-                    myCheckbox.parentElement.MaterialSwitch.on();
-                    mainSwitch = true;
-                }
-                else
-                {
-                    var myCheckbox = document.getElementById('switch-' + parsed[index].Objects[objectIndex].Name);
-                    myCheckbox.parentElement.MaterialSwitch.off();
-                }
-            }
+			if (parsed[index].Objects[objectIndex].Switch != undefined) {
+				if (parsed[index].Objects[objectIndex].ObjectModel != undefined) {
+					if (parsed[index].Objects[objectIndex].Switch == true) {
+						var myCheckbox = document.getElementById('switch-' + parsed[index].Objects[objectIndex].Name);
+						myCheckbox.parentElement.MaterialSwitch.on();
+						mainSwitch = true;
+					}
+					else {
+						var myCheckbox = document.getElementById('switch-' + parsed[index].Objects[objectIndex].Name);
+						myCheckbox.parentElement.MaterialSwitch.off();
+					}
+				}
+			}
         }
         if (mainSwitch) {
             var myCheckbox = document.getElementById('switch-' + parsed[index].Name);
