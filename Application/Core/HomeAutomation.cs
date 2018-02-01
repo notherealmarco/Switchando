@@ -82,11 +82,11 @@ namespace HomeAutomationCore
 
             if (Database.Get<MQTTClient>("switchando.mqttclient") == null)
             {
-                Identities = new List<Identity>();
+                //MQTTClient = new MQTTClient();
             }
             else
             {
-                Identities = Database.Get<List<Identity>>("switchando.identities");
+                MQTTClient = Database.Get<MQTTClient>("switchando.mqttclient");
             }
         }
         public void LoadCore()

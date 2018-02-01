@@ -34,7 +34,6 @@ namespace HomeAutomationCore
                 noGPIO = true;
             }
             var server = new HomeAutomationServer("A Switchando family", "password");
-            Console.WriteLine("ciao");
             if (!noGPIO) Console.WriteLine(PIGPIO.pigpio_start(null, null));
 
             Console.WriteLine("Welcome to Switchando Automation 4 BETA 4 (Bountiful Update) Server by Marco Realacci!");
