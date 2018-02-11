@@ -1,5 +1,6 @@
 ﻿using Homeautomation.GPIO;
 using HomeAutomation.Application.ConfigRetriver;
+using HomeAutomation.ConfigRetriver;
 using HomeAutomation.Events;
 using HomeAutomation.Network;
 using HomeAutomation.Network.Getters;
@@ -113,7 +114,7 @@ namespace HomeAutomationCore
             {
                 HomeAutomationServer.server.MQTTClient.Init();
             }
-
+            new NetworkInterface("DEVICE_MANAGER", ConfigRetriver.SendParameters);
             new NetworkInterface("OBJECT_INTERFACE", ObjectInterface.SendParameters);
             new NetworkInterface("METHOD_INTERFACE", MethodInterface.SendParameters);
             new NetworkInterface("ACTION", HomeAutomation.ObjectInterfaces.Action.SendParameters);
@@ -142,6 +143,7 @@ namespace HomeAutomationCore
 
             var rgb = new NetworkInterface("LIGHT_GPIO_RGB", RGBLight.SendParameters);
             new HTMLFragment("COLORABLE_LIGHT", Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/web/standard-fragments/colorable_light.htmlfragment");
+                new HTMLFragment("COLOR_AMBIANCE_LIGHT", Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/web/standard-fragments/color_ambiance_light.htmlfragment");
             new ObjectInterface(rgb, "Switch", typeof(uint), "ON / OFF state");
             new ObjectInterface(rgb, "ValueR", typeof(uint), "Red value");
             new ObjectInterface(rgb, "ValueG", typeof(uint), "Green value");

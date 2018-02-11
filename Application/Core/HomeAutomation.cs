@@ -82,7 +82,7 @@ namespace HomeAutomationCore
 
             if (Database.Get<MQTTClient>("switchando.mqttclient") == null)
             {
-                //MQTTClient = new MQTTClient();
+                
             }
             else
             {

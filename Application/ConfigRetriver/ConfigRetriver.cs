@@ -1,4 +1,5 @@
-﻿/*using HomeAutomation.Network;
+﻿using HomeAutomation.Network;
+using HomeAutomation.Network.APIStatus;
 using HomeAutomation.Objects;
 using HomeAutomation.Objects.Blinds;
 using HomeAutomation.Objects.External;
@@ -7,6 +8,7 @@ using HomeAutomation.Objects.Inputs;
 using HomeAutomation.Objects.Lights;
 using HomeAutomation.Objects.Switches;
 using HomeAutomation.Rooms;
+using HomeAutomation.Users;
 using HomeAutomationCore;
 using HomeAutomationCore.Client;
 using Newtonsoft.Json;
@@ -17,194 +19,26 @@ namespace HomeAutomation.ConfigRetriver
 {
     public class ConfigRetriver
     {
-        public static void Update()
+        public static string SendParameters(string method, string[] request, Identity login)
         {
-            string json = JsonConvert.SerializeObject(HomeAutomationServer.server.Rooms);
-            File.WriteAllText(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/configuration.json", json);
-        }
-        public ConfigRetriver()
-        {
-            foreach (NetworkInterface netInt in HomeAutomationServer.server.NetworkInterfaces)
-            {
-                if (netInt.Id.Equals("configuration")) return;
-            }
-            NetworkInterface.Delegate requestHandler;
-            requestHandler = SendParameters;
-            NetworkInterface networkInterface = new NetworkInterface("configuration", requestHandler);
-        }
-        public static string SendParameters(string method, string[] request)
-        {
-            foreach (Configuration config in HomeAutomationServer.server.Configs)
-            {
-                if (method.StartsWith("configuration/" + config.Id))
-                {
-                    return config.Run(request);
-                }
-            }
-
+            if (!login.IsAdmin()) return new ReturnStatus(CommonStatus.ERROR_FORBIDDEN_REQUEST, "no permissions").Json();
             switch (method)
             {
-                case "addroom":
-                    CreateRoom(request);
-                    break;
+                case "removeRoom":
+                    if (RemoveRoom(request)) return new ReturnStatus(CommonStatus.SUCCESS).Json(); else return new ReturnStatus(CommonStatus.ERROR_NOT_FOUND).Json();
 
-                case "removeroom":
-                    RemoveRoom(request);
-                    break;
+                case "removeDevice":
+                    if (RemoveObject(request)) return new ReturnStatus(CommonStatus.SUCCESS).Json(); else return new ReturnStatus(CommonStatus.ERROR_NOT_FOUND).Json();
 
-                case "removeobject":
-                    RemoveObject(request);
-                    break;
+                case "removeClient":
+                    if (RemoveClient(request)) return new ReturnStatus(CommonStatus.SUCCESS).Json(); else return new ReturnStatus(CommonStatus.ERROR_NOT_FOUND).Json();
 
-                case "removeclient":
-                    RemoveClient(request);
-                    break;
-
-                case "addclient":
-                    CreateClient(request);
-                    break;
-
-                case "addlightrgb":
-                    CreateLightRGB(request);
-                    break;
-
-                case "addlightw":
-                    CreateLightW(request);
-                    break;
-
-                case "addblinds":
-                    CreateBlinds(request);
-                    break;
-
-                case "addsimplefan":
-                    //CreateSimpleFan(request);
-                    break;
-
-                case "addrelay":
-                    CreateRelay(request);
-                    break;
-
-                case "addwebrelay":
-                    CreateWebRelay(request);
-                    break;
-
-                case "addbutton":
-                    CreateButton(request);
-                    break;
-
-                case "buttonaddcommand":
-                    ButtonAddCommand(request);
-                    break;
-
-                case "buttonaddobject":
-                    ButtonAddObject(request);
-                    break;
-
-                case "addswitchbutton":
-                    CreateSwitchButton(request);
-                    break;
-
-                case "switchbuttonaddcommand":
-                    SwitchButtonAddCommand(request);
-                    break;
-                case "switchbuttoaddobject":
-                    SwitchButtonAddObject(request);
-                    break;
-
-                case "updatefile":
-                    break;
+                case "updateFile":
+                    return new ReturnStatus(CommonStatus.SUCCESS).Json();
             }
-
-            if (string.IsNullOrEmpty(method))
-            {
-                foreach (string cmd in request)
-                {
-                    string[] command = cmd.Split('=');
-                    if (command[0].Equals("interface"))
-                    {
-                        foreach (Configuration config in HomeAutomationServer.server.Configs)
-                        {
-                            if (command[1].StartsWith("configuration/" + config.Id))
-                            {
-                                return config.Run(request);
-                            }
-                        }
-                    }
-                    switch (command[0])
-                    {
-                        case "addroom":
-                            CreateRoom(request);
-                            break;
-
-                        case "removeroom":
-                            RemoveRoom(request);
-                            break;
-                        case "removeobject":
-                            RemoveObject(request);
-                            break;
-                        case "removeclient":
-                            RemoveClient(request);
-                            break;
-
-                        case "addclient":
-                            CreateClient(request);
-                            break;
-
-                        case "addlightrgb":
-                            CreateLightRGB(request);
-                            break;
-
-                        case "addlightw":
-                            CreateLightW(request);
-                            break;
-                        case "addblinds":
-                            CreateBlinds(request);
-                            break;
-
-                        case "addsimplefan":
-                            //CreateSimpleFan(request);
-                            break;
-
-                        case "addrelay":
-                            CreateRelay(request);
-                            break;
-
-                        case "addwebrelay":
-                            CreateWebRelay(request);
-                            break;
-
-                        case "addbutton":
-                            CreateButton(request);
-                            break;
-
-                        case "buttonaddcommand":
-                            ButtonAddCommand(request);
-                            break;
-                        case "buttonaddobject":
-                            ButtonAddObject(request);
-                            break;
-
-                        case "addswitchbutton":
-                            CreateSwitchButton(request);
-                            break;
-
-                        case "switchbuttonaddcommand":
-                            SwitchButtonAddCommand(request);
-                            break;
-                        case "switchbuttoaddobject":
-                            SwitchButtonAddObject(request);
-                            break;
-
-                        case "updatefile":
-                            break;
-                    }
-                }
-            }
-            string json = JsonConvert.SerializeObject(HomeAutomationServer.server.Rooms);
-            File.WriteAllText(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/configuration.json", json);
-            return "";
+            return new ReturnStatus(CommonStatus.ERROR_NOT_IMPLEMENTED).Json();
         }
-        private static void CreateClient(string[] data)
+        private static bool RemoveRoom(string[] data)
         {
             string name = null;
 
@@ -214,29 +48,7 @@ namespace HomeAutomation.ConfigRetriver
                 if (command[0].Equals("interface")) continue;
                 switch (command[0])
                 {
-                    case "addclient":
-                        name = command[1];
-                        break;
-                }
-            }
-
-            foreach (Client clnt in HomeAutomationServer.server.Clients)
-            {
-                if (clnt.Name.ToLower().Equals(name.ToLower())) return;
-            }
-            new Client(null, 0, name);
-        }
-        private static void RemoveRoom(string[] data)
-        {
-            string name = null;
-
-            foreach (string cmd in data)
-            {
-                string[] command = cmd.Split('=');
-                if (command[0].Equals("interface")) continue;
-                switch (command[0])
-                {
-                    case "removeroom":
+                    case "room":
                         name = command[1];
                         break;
                 }
@@ -246,11 +58,12 @@ namespace HomeAutomation.ConfigRetriver
                 if (room.Name.Equals(name))
                 {
                     HomeAutomationServer.server.Rooms.Remove(room);
-                    return;
+                    return true;
                 }
             }
+            return false;
         }
-        private static void RemoveObject(string[] data)
+        private static bool RemoveObject(string[] data)
         {
             string name = null;
 
@@ -260,7 +73,7 @@ namespace HomeAutomation.ConfigRetriver
                 if (command[0].Equals("interface")) continue;
                 switch (command[0])
                 {
-                    case "removeobject":
+                    case "objname":
                         name = command[1];
                         break;
                 }
@@ -272,7 +85,6 @@ namespace HomeAutomation.ConfigRetriver
                     if (iobj.GetName().Equals(name))
                     {
                         room.Objects.Remove(iobj);
-                        return;
                     }
                 }
             }
@@ -281,11 +93,12 @@ namespace HomeAutomation.ConfigRetriver
                 if (iobj.GetName().Equals(name))
                 {
                     HomeAutomationServer.server.Objects.Remove(iobj);
-                    return;
+                    return true;
                 }
             }
+            return false;
         }
-        private static void RemoveClient(string[] data)
+        private static bool RemoveClient(string[] data)
         {
             string name = null;
 
@@ -295,7 +108,7 @@ namespace HomeAutomation.ConfigRetriver
                 if (command[0].Equals("interface")) continue;
                 switch (command[0])
                 {
-                    case "removeclient":
+                    case "client":
                         name = command[1];
                         break;
                 }
@@ -305,11 +118,12 @@ namespace HomeAutomation.ConfigRetriver
                 if (client.Name.Equals(name))
                 {
                     HomeAutomationServer.server.Clients.Remove(client);
-                    return;
+                    return true;
                 }
             }
+            return false;
         }
-        private static void CreateRoom(string[] data)
+/*        private static void CreateRoom(string[] data)
         {
             string name = null;
             bool hiddenRoom = false;
@@ -1034,6 +848,6 @@ namespace HomeAutomation.ConfigRetriver
             if (button == null || switchable == null) return;
 
             button.AddObject(switchable);
-        }
+        }*/
     }
-}*/
+}

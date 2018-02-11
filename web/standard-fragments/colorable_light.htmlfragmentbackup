@@ -1,0 +1,34 @@
+<div id="div-%Name%" style="width:100%;position:relative;background-color:white" class="mdl-shadow--2dp switchdiv">
+<h4 style="color:black">%Name%</h4>
+<div style="position:absolute;right:15px;top:10px">
+<label style="height:100%" class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-%Name%">
+<input type="checkbox" id="switch-%Name%" class="mdl-switch__input" onClick="onClick('%Name%')"  />
+<span class="mdl-switch__label"></span>
+</label>
+</div>
+
+<div class="option-heading" style="position:absolute;right:70px;top:17px">
+<div class="arrow-up"><button class="mdl-button mdl-js-button mdl-button--icon"><i class="material-icons">arrow_upward</i></button></div>
+<div class="arrow-down"><button style="transition:opacity 1s linear;" class="mdl-button mdl-js-button mdl-button--icon"><i class="material-icons">arrow_downward</i></button></div>
+</div>
+<div class="option-content">
+<br />
+  <div id="colorHue-%Name%" style="background-color: #262626;display:none;">
+    <br />
+    <button class="mdl-button mdl-js-button mdl-button--icon mdl-color-text--black" style="border: 1px solid #000;position:absolute;left:20px;top:17px;" onClick="document.getElementById('colorHue-%Name%').style.display = 'none';document.getElementById('colorAmbiance-%Name%').style.display = 'block';var server = new Switchando();server.sendCommandAsync('id/%Name%/setColorMode?&objname=%Name%&color_mode=ambiance');"><i class="material-icons" style="font-weigth:10">lightbulb_outline</i></button>
+    <iframe src="standard-fragments/rgb_wheel.html?R=%ValueR%&G=%ValueG%&B=%ValueB%&id=%Name%" style="height:375px;width:100%;border:0;" id="frame-%Name%"></iframe>
+  </div>
+  <div id="colorAmbiance-%Name%">
+    <div style="background: linear-gradient(to right, #B2EBF2, #F2F2F2, #FFF59D)">
+      <button class="mdl-button mdl-js-button mdl-button--icon mdl-color-text--black" style="border: 1px solid #000;position:absolute;left:20px;top:17px;" onClick="document.getElementById('colorAmbiance-%Name%').style.display = 'none';document.getElementById('colorHue-%Name%').style.display = 'block';var server = new Switchando();server.sendCommandAsync('id/%Name%/setColorMode?&objname=%Name%&color_mode=hue');"><i class="material-icons" style="font-weigth:10">invert_colors</i></button>
+      <div style="padding-top:35px;padding-bottom:35px"><input class="mdl-slider mdl-js-slider slider" type="range" min="0" max="255" step="1" style="width:100%;height:50px;color:white" id="wbrightness_%Name%" value="%Ambiance%" onchange="var server = new Switchando();server.sendCommandAsync('id/%Name%/setAmbiance?&objname=%Name%&ambiance=' + this.value + '&dimmer=300');" /></div>
+    </div>
+    <div style="background-color:whitesmoke">
+      <div style="padding-top:25px;padding-bottom:25px"><input class="mdl-slider mdl-js-slider slider" type="range" min="0" max="100" step="1" style="width:100%;height:50px;color:white" id="wbrightness_%Name%" value="%Brightness%" onchange="var server = new Switchando();server.sendCommandAsync('id/%Name%/dimm?&objname=%Name%&percentage=' + this.value + '&dimmer=300');" /></div>
+    </div>
+  </div>
+</div>
+<p style="color:gray">
+    %Description%
+</p>
+</div>

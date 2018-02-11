@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -36,7 +36,7 @@
 		$('#form').submit(function () {
 			var name = $('#room_select').val();
 			var server = new Switchando();
-			var response = server.sendCommand("DEVICE_MANAGER/removeRoom?objname=" + name);
+			var response = server.sendCommand("DEVICE_MANAGER/removeRoom?room=" + name);
 			var parsed = JSON.parse(response);
 			if (parsed.status == 0) {
 				return true;

@@ -91,7 +91,7 @@ function onLoad(json)
         innerHtml += objectsInnerHtml;
 
     }
-    document.getElementById('switches_div').innerHTML += innerHtml;
+	document.getElementById('switches_div').innerHTML += innerHtml;
     collapse();
 	firstRun = false;
 	setInterval(async function () {

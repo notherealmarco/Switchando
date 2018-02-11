@@ -16,6 +16,7 @@ namespace HomeAutomation.Network
         private MqttClient client;
         public delegate void Delegate(MqttClient sender, MqttMsgPublishEventArgs e);
         private List<KeyValuePair<string, Delegate>> CustomTopics;
+        private List<string> Subscriptions;
         private List<string> Ignore;
         public string Username;
         public string Password;
@@ -23,12 +24,14 @@ namespace HomeAutomation.Network
         public MQTTClient()
         {
             Ignore = new List<string>();
+            Subscriptions = new List<string>();
             this.CustomTopics = new List<KeyValuePair<string, Delegate>>();
         }
         public MQTTClient(string address, string username, string password)
         {
             client = new MqttClient(address);
             Ignore = new List<string>();
+            Subscriptions = new List<string>();
             client.MqttMsgPublishReceived += client_MqttMsgPublishReceived;
             client.MqttMsgSubscribed += client_MqttMsgSubscribed;
             client.MqttMsgUnsubscribed += client_MqttMsgUnsubscribed;
@@ -40,6 +43,7 @@ namespace HomeAutomation.Network
             this.Address = address;
 
             string[] topic = { "switchando", "switchando/main", "switchando/clients" };
+            Subscriptions.Add("switchando"); Subscriptions.Add("switchando/main"); Subscriptions.Add("switchando/clients");
             byte[] qosLevels = { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE };
             client.Subscribe(topic, qosLevels);
             Publish("switchando/clients", "server-online");
@@ -49,6 +53,7 @@ namespace HomeAutomation.Network
         {
             client = new MqttClient(address);
             Ignore = new List<string>();
+            Subscriptions = new List<string>();
             client.MqttMsgPublishReceived += client_MqttMsgPublishReceived;
             client.MqttMsgSubscribed += client_MqttMsgSubscribed;
             client.MqttMsgUnsubscribed += client_MqttMsgUnsubscribed;
@@ -59,6 +64,7 @@ namespace HomeAutomation.Network
             this.Password = null;
 
             string[] topic = { "switchando", "switchando/main", "switchando/clients" };
+            Subscriptions.Add("switchando"); Subscriptions.Add("switchando/main"); Subscriptions.Add("switchando/clients");
             byte[] qosLevels = { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE };
             client.Subscribe(topic, qosLevels);
             Publish("switchando/clients", "server-online");
@@ -72,6 +78,7 @@ namespace HomeAutomation.Network
             client.MqttMsgUnsubscribed += client_MqttMsgUnsubscribed;
             client.MqttMsgPublished += client_MqttMsgPublished;
             string[] topic = { "switchando", "switchando/main", "switchando/clients" };
+            Subscriptions.Add("switchando"); Subscriptions.Add("switchando/main"); Subscriptions.Add("switchando/clients");
             byte[] qosLevels = { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE };
             client.Subscribe(topic, qosLevels);
             Publish("switchando/clients", "server-online");
@@ -95,6 +102,7 @@ namespace HomeAutomation.Network
         {
             byte[] qosLevels = { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE };
             client.Subscribe(new string[]{ topic }, qosLevels);
+            if (!Subscriptions.Contains(topic)) Subscriptions.Add(topic);
         }
         public void Subscribe(string topic, Delegate method)
         {
@@ -106,6 +114,7 @@ namespace HomeAutomation.Network
             }
             if (addTopic) client.Subscribe(new string[] { topic }, qosLevels);
             this.CustomTopics.Add(new KeyValuePair<string, Delegate>(topic, method));
+            if (!Subscriptions.Contains(topic)) Subscriptions.Add(topic);
         }
         public void Unsubscribe(string topic)
         {
@@ -114,13 +123,13 @@ namespace HomeAutomation.Network
         public void Publish(string topic, string message)
         {
             client.Publish(topic, Encoding.UTF8.GetBytes(message));
-            Ignore.Add(message);
+            if (Subscriptions.Contains(topic)) Ignore.Add(topic + message);
         }
         void client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
         {
-            if (Ignore.Contains(Encoding.UTF8.GetString(e.Message)))
+            if (Ignore.Contains(e.Topic + Encoding.UTF8.GetString(e.Message)))
             {
-                Ignore.Remove(e.Message.ToString());
+                Ignore.Remove(e.Topic + Encoding.UTF8.GetString(e.Message));
                 return;
             }
             Console.Write(e.Topic + " -> ");
@@ -132,6 +141,15 @@ namespace HomeAutomation.Network
                 {
                     kvp.Value((MqttClient)sender, e);
                     return;
+                }
+                if (kvp.Key.Contains("#"))
+                {
+                    string topic = kvp.Key.Substring(0, kvp.Key.Length - 1);
+                    if (e.Topic.Contains(topic))
+                    {
+                        kvp.Value((MqttClient)sender, e);
+                        return;
+                    }
                 }
             }
             string message = Encoding.UTF8.GetString(e.Message);
