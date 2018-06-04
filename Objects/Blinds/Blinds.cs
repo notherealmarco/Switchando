@@ -2,7 +2,6 @@
 using HomeAutomation.Network;
 using HomeAutomation.Network.APIStatus;
 using HomeAutomation.Objects.External;
-using HomeAutomation.Objects.Fans;
 using HomeAutomation.Objects.Switches;
 using HomeAutomation.Rooms;
 using HomeAutomation.Users;

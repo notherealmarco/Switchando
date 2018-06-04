@@ -40,7 +40,7 @@
 			var name = $('#name').val();
 			var command = $('#btncmd').val();
 			var server = new Switchando();
-			var response = server.sendCommand("button/addCommand?objname=" + name + "&command=" + command);
+			var response = server.sendCommand("id/" + name + "/addCommand?objname=" + name + "&command=" + command);
 			var parsed = JSON.parse(response);
 			if (parsed.status == 0) {
 				return true;

@@ -38,10 +38,10 @@
 		loadSwitchButtons();
 		loadSwitchableDevices();
 		$('#form').submit(function () {
-			var name = $('#name').val();
+			var name = $('#buttons_select').val();
 			var device = $('#switchables_select').val();
 			var server = new Switchando();
-			var response = server.sendCommand("switch_button/addObject?objname=" + name + "&device=" + command);
+			var response = server.sendCommand("id/" + name + "/addObject?objname=" + name + "&device=" + device);
 			var parsed = JSON.parse(response);
 			if (parsed.status == 0) {
 				return true;

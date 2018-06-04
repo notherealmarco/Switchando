@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -41,7 +41,7 @@
 			var name = $('#buttons_select').val();
 			var device = $('#action_select').val();
 			var server = new Switchando();
-			var response = server.sendCommand("button/addAction?objname=" + name + "&action=" + device);
+			var response = server.sendCommand("id/" + name + "/addAction?objname=" + name + "&action=" + device);
 			var parsed = JSON.parse(response);
 			if (parsed.status == 0) {
 				return true;

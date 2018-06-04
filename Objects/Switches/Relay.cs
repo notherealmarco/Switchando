@@ -1,131 +1,171 @@
-﻿using Homeautomation.GPIO;
-using HomeAutomation.Network;
+﻿using HomeAutomation.Network;
 using HomeAutomation.Network.APIStatus;
-using HomeAutomation.ObjectInterfaces;
+using HomeAutomation.Objects;
 using HomeAutomation.Objects.Switches;
 using HomeAutomation.Rooms;
 using HomeAutomation.Users;
 using HomeAutomationCore;
-using HomeAutomationCore.Client;
 using System;
 using System.Collections.Generic;
 
-namespace HomeAutomation.Objects.Fans
+namespace Switchando.Objects.Lights
 {
-    class Relay : ISwitch
+    public abstract class Relay : ISwitch
     {
-        Client Client;
-        public string ClientName;
-        public uint Pin { get; set; }
+        public bool Switch { get; set; }
+
         public string Name;
+        public string DisplayName;
         public string[] FriendlyNames;
-        public bool Switch;
         public string Description;
 
-        public string ObjectType = "GENERIC_SWITCH";
+        public bool nolog = false;
+
         public string ObjectModel = "SWITCH";
 
-        public Relay()
-        {
-            NetworkInterface.Delegate requestHandler;
-            requestHandler = SendParameters;
-        }
-        public Relay(Client client, string name, uint pin, string description, string[] friendlyNames)
-        {
-            this.Client = client;
-            this.ClientName = client.Name;
-            this.FriendlyNames = friendlyNames;
+        public string ClientName = "local"; //Compatibility with older versions
 
-            this.Description = description;
-            this.Pin = pin;
-            this.Name = name;
-            HomeAutomationServer.server.Objects.Add(this);
-        }
-        public void SetClient(Client client)
+        public void Create(string Name, string DisplayedName, string Description, string[] FriendlyNames)
         {
-            this.Client = client;
+            this.Switch = true;
+            this.Name = Name;
+            this.DisplayName = DisplayedName;
+            this.Description = Description;
+            this.FriendlyNames = FriendlyNames;
         }
+
+        public void Pause()
+        {
+            if (Switch)
+            {
+                UpdateSwitch(false);
+                Switch = false;
+            }
+            else
+            {
+                UpdateSwitch(true);
+                Switch = true;
+            }
+        }
+
+        public void Pause(bool status)
+        {
+            if (status)
+            {
+                UpdateSwitch(true);
+                Switch = true;
+            }
+            else
+            {
+                UpdateSwitch(false);
+                Switch = false;
+            }
+        }
+
+        abstract public void UpdateSwitch(bool status);
 
         public void Start()
         {
-            Console.WriteLine("Switch `" + this.Name + "` has been turned on.");
-            //HomeAutomationServer.server.Telegram.Log("Switch `" + this.Name + "` has been turned on.");
-            if (Client.Name.Equals("local"))
-            {
-                PIGPIO.gpio_write(0, Pin, 1);
-            }
-            else
-            {
-                UploadValues(true);
-            }
-            Switch = true;
+            Pause(true);
         }
         public void Stop()
         {
-            Console.WriteLine("Switch `" + this.Name + "` has been turned off.");
-            //HomeAutomationServer.server.Telegram.Log("Switch `" + this.Name + "` has been turned off.");
-            if (Client.Name.Equals("local"))
-            {
-                PIGPIO.gpio_write(0, Pin, 0);
-            }
-            else
-            {
-                UploadValues(false);
-            }
-            Switch = false;
+            Pause(false);
         }
         public bool IsOn()
         {
             return Switch;
         }
+        abstract public string GetObjectType();
+        /*public string GetObjectType()
+        {
+            return ObjectType;
+        }*/
         public string GetName()
         {
             return Name;
-        }
-        public string GetId()
-        {
-            return Name;
-        }
-        public string GetObjectType()
-        {
-            return "GENERIC_SWITCH";
         }
         public string[] GetFriendlyNames()
         {
             return FriendlyNames;
         }
-        void UploadValues(bool value)
+        abstract public NetworkInterface GetInterface();
+        private static IObject FindLightFromName(string name)
         {
-            Client.Sendata("GENERIC_SWITCH/switch?objname=" + this.Name + "&switch=" + value.ToString());
-        }
-        public NetworkInterface GetInterface()
-        {
-            return NetworkInterface.FromId(ObjectType);
-        }
-        private static Relay FindRelayFromName(string name)
-        {
-            Relay relay = null;
+            Relay light = null;
             foreach (IObject obj in HomeAutomationServer.server.Objects)
             {
                 if (obj.GetName().ToLower().Equals(name.ToLower()))
                 {
-                    relay = (Relay)obj;
+                    light = (Relay)obj;
                     break;
                 }
                 if (obj.GetFriendlyNames() == null) continue;
                 if (Array.IndexOf(obj.GetFriendlyNames(), name.ToLower()) > -1)
                 {
-                    relay = (Relay)obj;
+                    light = (Relay)obj;
                     break;
                 }
             }
-            return relay;
+            return light;
         }
-        public static string SendParameters(string method, string[] request, Identity login)
+        public string CompleteRegistration(string[] request)
+        {
+            string name = null;
+            string dname = null;
+            string[] friendlyNames = null;
+            string description = null;
+            Room room = null;
+
+            foreach (string cmd in request)
+            {
+                string[] command = cmd.Split('=');
+                if (command[0].Equals("interface")) continue;
+                switch (command[0])
+                {
+                    case "objname":
+                        name = command[1];
+                        break;
+                    case "display_name":
+                        dname = command[1];
+                        break;
+                    case "description":
+                        description = command[1];
+                        break;
+                    case "setfriendlynames":
+                        string names = command[1];
+                        friendlyNames = names.Split(',');
+                        break;
+                    case "room":
+                        foreach (Room stanza in HomeAutomationServer.server.Rooms)
+                        {
+                            if (stanza.Name.ToLower().Equals(command[1].ToLower()))
+                            {
+                                room = stanza;
+                            }
+                        }
+                        break;
+                }
+            }
+            if (room == null) return new ReturnStatus(CommonStatus.ERROR_NOT_FOUND, "Room not found").Json();
+
+            this.Switch = true;
+            this.Name = name;
+            this.DisplayName = dname;
+            this.Description = description;
+            this.FriendlyNames = friendlyNames;
+            room.AddItem(this);
+            HomeAutomationServer.server.Objects.Add(this);
+
+            ReturnStatus data = new ReturnStatus(CommonStatus.SUCCESS);
+            data.Object.light = this;
+            return data.Json();
+        }
+        public static string APIRequest(string method, string[] request, Identity login)
         {
             if (method.Equals("switch"))
             {
-                Relay relay = null;
+                Relay light = null;
                 bool status = false;
 
                 foreach (string cmd in request)
@@ -134,156 +174,34 @@ namespace HomeAutomation.Objects.Fans
                     switch (command[0])
                     {
                         case "objname":
-                            relay = FindRelayFromName(command[1]);
+                            light = (Relay)FindLightFromName(command[1]);
                             break;
                         case "switch":
                             status = bool.Parse(command[1]);
                             break;
                     }
                 }
-                if (relay == null) return new ReturnStatus(CommonStatus.ERROR_NOT_FOUND).Json();
-                if (!login.HasAccess(relay)) return new ReturnStatus(CommonStatus.ERROR_FORBIDDEN_REQUEST, "Insufficient permissions").Json();
-                if (status) relay.Start(); else relay.Stop();
+                if (light == null) return new ReturnStatus(CommonStatus.ERROR_NOT_FOUND).Json();
+                if (!login.HasAccess(light)) return new ReturnStatus(CommonStatus.ERROR_FORBIDDEN_REQUEST, "Insufficient permissions").Json();
+                if (status) light.Start(); else light.Stop();
                 return new ReturnStatus(CommonStatus.SUCCESS).Json();
             }
-            if (method.Equals("switch_TEST")) //REMOVE THIS PLS
+            if (method.Equals("create"))
             {
-                Relay relay = null;
-                bool status = false;
-
-                foreach (string cmd in request)
-                {
-                    string[] command = cmd.Split('=');
-                    switch (command[0])
-                    {
-                        case "objname":
-                            relay = FindRelayFromName(command[1]);
-                            break;
-                        case "switch":
-                            status = bool.Parse(command[1]);
-                            break;
-                    }
-                    if (relay == null) return new ReturnStatus(CommonStatus.ERROR_NOT_FOUND).Json();
-                }
-                if (status) relay.Start(); else relay.Stop();
-                return new ReturnStatus(CommonStatus.SUCCESS).Json();
+                return new ReturnStatus(CommonStatus.ERROR_BAD_REQUEST, "This is an abstract device and can only be implemented").Json();
             }
-            if (method.Equals("createRelay"))
-            {
-                if (!login.IsAdmin()) return new ReturnStatus(CommonStatus.ERROR_FORBIDDEN_REQUEST, "Insufficient permissions").Json();
-                string name = null;
-                string[] friendlyNames = null;
-                string description = null;
-
-                uint pin = 0;
-
-                Client client = null;
-
-                Room room = null;
-
-                foreach (string cmd in request)
-                {
-                    string[] command = cmd.Split('=');
-                    if (command[0].Equals("interface")) continue;
-                    switch (command[0])
-                    {
-                        case "objname":
-                            name = command[1];
-                            break;
-                        case "description":
-                            description = command[1];
-                            break;
-                        case "setfriendlynames":
-                            string names = command[1];
-                            friendlyNames = names.Split(',');
-                            break;
-                        case "pin":
-                            string pinStr = command[1];
-                            pin = uint.Parse(pinStr);
-                            break;
-                        case "client":
-                            string clientName = command[1];
-                            foreach (Client clnt in HomeAutomationServer.server.Clients)
-                            {
-                                if (clnt.Name.Equals(clientName))
-                                {
-                                    client = clnt;
-                                }
-                            }
-                            if (client == null) return new ReturnStatus(CommonStatus.ERROR_NOT_FOUND, "Raspi-Client not found").Json();
-                            break;
-                        case "room":
-                            foreach (Room stanza in HomeAutomationServer.server.Rooms)
-                            {
-                                if (stanza.Name.ToLower().Equals(command[1].ToLower()))
-                                {
-                                    room = stanza;
-                                }
-                            }
-                            break;
-                    }
-                }
-                if (room == null) return new ReturnStatus(CommonStatus.ERROR_NOT_FOUND, "Room not found").Json();
-                Relay relay = new Relay(client, name, pin, description, friendlyNames);
-                room.AddItem(relay);
-                ReturnStatus data = new ReturnStatus(CommonStatus.SUCCESS);
-                data.Object.relay = relay;
-                return data.Json();
-            }
-
-            if (string.IsNullOrEmpty(method))
-            {
-                if (!login.IsAdmin()) return new ReturnStatus(CommonStatus.ERROR_FORBIDDEN_REQUEST, "Insufficient permissions").Json();
-                Relay fan = null;
-                foreach (string cmd in request)
-                {
-                    string[] command = cmd.Split('=');
-                    if (command[0].Equals("interface")) continue;
-                    switch (command[0])
-                    {
-                        case "objname":
-                            foreach (IObject obj in HomeAutomationServer.server.Objects)
-                            {
-                                if (obj.GetName().Equals(command[1]))
-                                {
-                                    fan = (Relay)obj;
-                                }
-                                if (obj.GetFriendlyNames() == null) continue;
-                                if (Array.IndexOf(obj.GetFriendlyNames(), command[1].ToLower()) > -1)
-                                {
-                                    fan = (Relay)obj;
-                                }
-                            }
-                            break;
-
-                        case "switch":
-                            if (command[1].ToLower().Equals("true"))
-                            {
-                                fan.Start();
-                            }
-                            else
-                            {
-                                fan.Stop();
-                            }
-                            break;
-                    }
-                }
-            }
-            return "";
+            return new ReturnStatus(CommonStatus.ERROR_NOT_IMPLEMENTED).Json();
         }
-        public static void Setup(Room room, dynamic device)
+        public static void Initialize(Relay light, dynamic device)
         {
-            Relay relay = new Relay();
-            relay.Pin = (uint)device.Pin;
-            relay.Name = device.Name;
-            relay.Description = device.Description;
-            relay.FriendlyNames = Array.ConvertAll(((List<object>)device.FriendlyNames).ToArray(), x => x.ToString());
-            relay.Switch = device.Switch;
-            relay.ClientName = device.Client.Name;
-            relay.SetClient(device.Client);
+            light.Name = device.Name;
+            light.DisplayName = device.DisplayName;
+            light.FriendlyNames = Array.ConvertAll(((List<object>)device.FriendlyNames).ToArray(), x => x.ToString());
+            light.Description = device.Description;
+            light.Switch = device.Switch;
 
-            HomeAutomationServer.server.Objects.Add(relay);
-            room.AddItem(relay);
+            //HomeAutomationServer.server.Objects.Add(light);
+            //room.AddItem(light);
         }
     }
 }

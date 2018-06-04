@@ -1,10 +1,12 @@
 ﻿using HomeAutomation.Network.APIStatus;
 using HomeAutomation.Objects;
+using HomeAutomation.Objects.External.Plugins;
 using HomeAutomation.Objects.Switches;
 using HomeAutomation.Rooms;
 using HomeAutomation.Users;
 using HomeAutomationCore;
 using Newtonsoft.Json;
+using Switchando.Objects.External.Plugins;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,6 +61,15 @@ namespace HomeAutomation.Network.Getters
                     usernames.Add(identity.Name);
                 }
                 return JsonConvert.SerializeObject(usernames);
+            }
+            if (method.Equals("plugins"))
+            {
+                List<PluginScheme> plugins = new List<PluginScheme>();
+                foreach (IPlugin ipl in Plugins.PluginsList)
+                {
+                    plugins.Add(new PluginScheme(ipl.GetName(), ipl.GetDescription(), ipl.GetDeveloper()));
+                }
+                return JsonConvert.SerializeObject(plugins);
             }
             return new ReturnStatus(CommonStatus.ERROR_NOT_IMPLEMENTED).Json();
         }

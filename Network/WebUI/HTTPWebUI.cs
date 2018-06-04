@@ -4,11 +4,17 @@ using System.Net.Sockets;
 using System.Net;
 using System.IO;
 using System.Threading;
+using WebSocketSharp;
+using HomeAutomation.Utilities;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace HomeAutomation.Network
 {
-    class HTTPWebUI
+    public class HTTPWebUI
     {
+        private List<string> _abort;
+        private Dictionary<string, AutoResetEvent> _continue;
         private readonly string[] _indexFiles = {
         "index.html",
         "index.htm",
@@ -53,6 +59,7 @@ namespace HomeAutomation.Network
         {".mng", "video/x-mng"},
         {".mov", "video/quicktime"},
         {".mp3", "audio/mpeg"},
+        {".flac", "audio/flac"},
         {".mpeg", "video/mpeg"},
         {".mpg", "video/mpeg"},
         {".msi", "application/octet-stream"},
@@ -105,6 +112,8 @@ namespace HomeAutomation.Network
         /// <param name="port">Port of the server.</param>
         public HTTPWebUI(string path, int port)
         {
+            _abort = new List<string>();
+            _continue = new Dictionary<string, AutoResetEvent>();
             this.Initialize(path, port);
         }
 
@@ -114,6 +123,8 @@ namespace HomeAutomation.Network
         /// <param name="path">Directory path to serve.</param>
         public HTTPWebUI(string path)
         {
+            _abort = new List<string>();
+            _continue = new Dictionary<string, AutoResetEvent>();
             //get an empty port
             TcpListener l = new TcpListener(IPAddress.Loopback, 0);
             l.Start();
@@ -228,7 +239,144 @@ namespace HomeAutomation.Network
 
             context.Response.OutputStream.Close();
         }
+        public void SendPacket(string request_id, string content, byte[] buffer, int nbytes, long total_size, WebSocket ws)
+        {
+            List<byte> raw_msg = new List<byte>();
+            byte[] rqid = Encoding.UTF8.GetBytes(request_id);
+            byte[] content_type = Encoding.UTF8.GetBytes(content + "\n" + nbytes + "\n" + total_size);
+            raw_msg.AddRange(rqid);
+            raw_msg.Add(0);
+            raw_msg.AddRange(content_type);
+            raw_msg.Add(0);
+            raw_msg.AddRange(buffer);
+            ws.Send(raw_msg.ToArray());
+        }
+        public void AbortRequest(string request_id)
+        {
+            if (!_abort.Contains(request_id)) _abort.Add(request_id);
+        }
+        public async void ProcessCloud(string request_id, string request, WebSocket ws)
+        {
+            _continue.Add(request_id, new AutoResetEvent(true));
+            string filename = request;
+            string pagePrefix = "";
+            //Console.WriteLine("Requested HTTP web page -> " + filename);
+            filename = filename.Substring(1);
 
+            if (string.IsNullOrEmpty(filename))
+            {
+                foreach (string indexFile in _indexFiles)
+                {
+                    if (File.Exists(Path.Combine(_rootDirectory, indexFile)))
+                    {
+                        filename = indexFile;
+                        //pagePrefix = "<button type=\"button\" style=\"\">BETA degli account Cloud</button>";
+                        break;
+                    }
+                }
+            }
+            if (filename.StartsWith("api/"))
+            {
+                filename = filename.Substring(4);
+                byte[] packet = Encoding.UTF8.GetBytes(HTTPHandler.SendCloudResponse(filename));
+                SendPacket(request_id, "application/json", packet, packet.Length, packet.Length, ws);
+                ws.Send("final\n" + request_id);
+                return;
+            }
+            if (filename.Contains("plugins/"))
+            {
+                filename = filename.Substring("plugins/".Length);
+                _rootDirectory = Utilities.Paths.GetServerPath() + "/plugins";
+                filename = Path.Combine(_rootDirectory, filename);
+                _rootDirectory = Utilities.Paths.GetServerPath() + "/web";
+            }
+            else if (filename.Contains("switchando-fragments/"))
+            {
+                filename = filename.Substring("switchando-fragments/".Length);
+
+                string path;
+                if (!HomeAutomationCore.HomeAutomationServer.server.HTMLFragments.TryGetValue(filename, out path))
+                {
+                    //context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    //context.Response.OutputStream.Close();
+                    ws.Send("httpcode\n400\n" + request_id);
+                    return;
+                }
+                filename = path;
+            }
+            else
+            {
+                filename = Path.Combine(_rootDirectory, filename);
+            }
+            var fn = filename.Split('?');
+            if (filename.Contains('?')) filename = filename.Substring(0, filename.Length - fn[fn.Length - 1].Length - 1);
+            if (File.Exists(filename))
+            {
+                try
+                {
+                    Stream input = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    string mime;
+                    string content_type = _mimeTypeMappings.TryGetValue(Path.GetExtension(filename), out mime) ? mime : "application/octet-stream";
+
+                    bool safe_mode = false;
+                    long lenght = input.Length;
+                    if (lenght > 1e+7) safe_mode = true;
+
+                    if (!string.IsNullOrEmpty(pagePrefix))
+                    {
+                        byte[] prefixRaw = Encoding.UTF8.GetBytes(pagePrefix);
+                        lenght += prefixRaw.Length;
+                        SendPacket(request_id, content_type, prefixRaw, prefixRaw.Length, lenght, ws);
+                    }
+
+                    byte[] buffer = new byte[1024 * 128];
+                    int nbytes;
+                    while ((nbytes = input.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        if (_abort.Contains(request_id)) break;
+                        _continue[request_id].WaitOne();
+                        while (!ws.IsAlive)
+                        {
+                            Console.WriteLine("CLOUD | Connection died while sending a packet");
+                            await Task.Delay(100);
+                        }
+                        SendPacket(request_id, content_type, buffer, nbytes, lenght, ws);
+                        //Console.WriteLine(request_id + " -> sent");
+                    }
+                    input.Close();
+
+                    //context.Response.StatusCode = (int)HttpStatusCode.OK;
+                    //context.Response.AddHeader("Date", DateTime.Now.ToString("r"));
+                    //context.Response.AddHeader("Last-Modified", System.IO.File.GetLastWriteTime(filename).ToString("r"));
+                    //context.Response.OutputStream.Flush();
+                    ws.Send("final\n" + request_id);
+                    if (_continue.ContainsKey(request_id)) _continue.Remove(request_id);
+                    if (_abort.Contains(request_id)) _abort.Remove(request_id);
+                }
+                catch
+                {
+                    ws.Send("httpcode\n500\n" + request_id);
+                    if (_continue.ContainsKey(request_id)) _continue.Remove(request_id);
+                    if (_abort.Contains(request_id)) _abort.Remove(request_id);
+                }
+
+            }
+            else
+            {
+                ws.Send("httpcode\n400\n" + request_id);
+                if (_continue.ContainsKey(request_id)) _continue.Remove(request_id);
+                if (_abort.Contains(request_id)) _abort.Remove(request_id);
+            }
+            if (_continue.ContainsKey(request_id)) _continue.Remove(request_id);
+            if (_abort.Contains(request_id)) _abort.Remove(request_id);
+        }
+        public void SendAnother(string request_id)
+        {
+            if (_continue.ContainsKey(request_id))
+            {
+                _continue[request_id].Set();
+            }
+        }
         private void Initialize(string path, int port)
         {
             this._rootDirectory = path;

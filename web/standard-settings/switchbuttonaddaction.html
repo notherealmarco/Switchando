@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -23,6 +23,19 @@
 				<option disabled>Choose the switch button</option>
 			</select>
 			<br /><br />
+			<div>
+				<label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="optionon">
+					<input type="radio" id="optionon" class="mdl-radio__button" name="options" value="1" checked>
+					<span class="mdl-radio__label">On switch on</span>
+				</label>
+			</div>
+			<div>
+				<label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="optionoff">
+					<input type="radio" id="optionoff" class="mdl-radio__button" name="options" value="2">
+					<span class="mdl-radio__label">On switch off</span>
+				</label>
+			</div>
+			<br /><br />
 			<span class="span spanborder">Select an action</span><br />
 			<select style="width:100%;height:30px;" id="action_select">
 				<option disabled>Choose the action</option>
@@ -38,10 +51,14 @@
 		loadSwitchButtons();
 		loadActions();
 		$('#form').submit(function () {
-			var name = $('#name').val();
+			var name = $('#buttons_select').val();
 			var device = $('#action_select').val();
+			var onTurnOn = $('#optionon')[0].checked;
 			var server = new Switchando();
-			var response = server.sendCommand("switch_button/addAction?objname=" + name + "&action=" + command);
+			var response;
+			if (onTurnOn) {
+				server.sendCommand("id/" + name + "/addAction/on?objname=" + name + "&action=" + device);
+			} else server.sendCommand("id/" + name + "/addAction/off?objname=" + name + "&action=" + device);
 			var parsed = JSON.parse(response);
 			if (parsed.status == 0) {
 				return true;

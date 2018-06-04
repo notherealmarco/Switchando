@@ -22,7 +22,7 @@ namespace HomeAutomation.Events
         }
         public void RegisterEvent(Event eventObj)
         {
-            Events.Add(eventObj);
+            if (!Events.Contains(eventObj)) Events.Add(eventObj);
         }
         public Event GetEvent(IObject device, string name)
         {

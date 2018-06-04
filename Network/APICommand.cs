@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace HomeAutomation.Network
 {
-    static class APICommand
+    public static class APICommand
     {
         public static string Run(string command, Identity login)
         {

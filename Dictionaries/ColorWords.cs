@@ -8,7 +8,7 @@ using System.Drawing;
 
 namespace HomeAutomation.Dictionaries
 {
-    static class ColorConverter
+    public static class ColorConverter
     {
         public static uint[] ConvertNameToRGB(string name)
         {

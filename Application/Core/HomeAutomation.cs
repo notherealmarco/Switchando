@@ -9,6 +9,7 @@ using HomeAutomation.Rooms;
 using HomeAutomation.Scenarios;
 using HomeAutomation.Users;
 using HomeAutomation.Utilities;
+using Switchando.Cloud;
 using System;
 using System.Collections.Generic;
 
@@ -17,6 +18,9 @@ namespace HomeAutomationCore
     public class HomeAutomationServer
     {
         public static HomeAutomationServer server;
+
+        public string UUID;
+        public string Version = "a8";
 
         public List<Client.Client> Clients { get; set; }
         public List<NetworkInterface> NetworkInterfaces { get; set; }
@@ -32,7 +36,9 @@ namespace HomeAutomationCore
         public EventsManager Events { get; set; }
         public List<Identity> Identities { get; set; }
         public MQTTClient MQTTClient { get; set; }
+        public HTTPWebUI Web { get; set; }
 
+        public SwitchandoCloud Cloud { get; set; }
 
         //public TelegramBot Telegram { get; set; }
         public ObjectNetwork ObjectNetwork { get; set; }
@@ -43,6 +49,7 @@ namespace HomeAutomationCore
 
         public HomeAutomationServer(string house, string password)
         {
+            UUID = Guid.NewGuid().ToString();
             server = this;
             this.House = house;
             this.Password = password;
@@ -91,7 +98,6 @@ namespace HomeAutomationCore
         }
         public void LoadCore()
         {
-            Console.WriteLine("Loading Switchando Core...");
             CoreLoader.LoadFromJson();
         }
         public void SaveData()

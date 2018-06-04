@@ -37,7 +37,7 @@ function loadButtons() {
 		window.location.replace("/server-error.html?json=" + clients);
 	} else {
 		for (index = 0; index < parsed.length; ++index) {
-			if (parsed[index].ObjectType == "BUTTON") {
+			if (parsed[index].ObjectKind == "BUTTON") {
 				var x = document.getElementById("buttons_select");
 				var option = document.createElement("option");
 				option.text = parsed[index].Name;
@@ -54,7 +54,7 @@ function loadSwitchButtons() {
 		window.location.replace("/server-error.html?json=" + clients);
 	} else {
 		for (index = 0; index < parsed.length; ++index) {
-			if (parsed[index].ObjectType == "SWITCH_BUTTON") {
+			if (parsed[index].ObjectKind == "SWITCH_BUTTON") {
 				var x = document.getElementById("buttons_select");
 				var option = document.createElement("option");
 				option.text = parsed[index].Name;

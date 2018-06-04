@@ -12,95 +12,16 @@ using System.Timers;
 
 namespace HomeAutomation.Objects.Inputs
 {
-    class Button : IObject
+    public abstract class Button : IObject
     {
-        Client Client;
-        public string ClientName;
-
         public string Name;
-
-        public uint Pin;
         bool Status;
         bool EmulatedSwitchStatus;
-        public bool IsRemote;
-
-        Timer timer;
-
         public List<string> Commands;
         public List<string> Objects;
         public List<string> Actions;
-
-        public string ObjectType = "BUTTON";
-        public Button(Client client, string name, bool isRemote)
-        {
-            this.Client = client;
-            this.ClientName = client.Name;
-            this.Pin = 0;
-            this.Name = name;
-            this.IsRemote = isRemote;
-
-            this.Commands = new List<string>();
-            this.Objects = new List<string>();
-            this.Actions = new List<string>();
-
-            if (isRemote)
-            {
-
-            }
-            else
-            {
-                if (Client.Name.Equals("local"))
-                {
-                    PIGPIO.set_pull_up_down(0, this.Pin, 2);
-                    Console.WriteLine("PUD-UP was set on GPIO" + this.Pin);
-
-                    timer = new Timer();
-
-                    timer.Elapsed += Tick;
-                    timer.Interval = 200;
-                    timer.Start();
-                }
-            }
-
-            HomeAutomationServer.server.Objects.Add(this);
-        }
-        public Button(Client client, string name, uint pin, bool isRemote)
-        {
-            this.Client = client;
-            this.ClientName = client.Name;
-            this.Pin = pin;
-            this.Name = name;
-            this.IsRemote = isRemote;
-
-            this.Commands = new List<string>();
-            this.Objects = new List<string>();
-            this.Actions = new List<string>();
-
-            if (isRemote)
-            {
-
-            }
-            else
-            {
-                if (Client.Name.Equals("local"))
-                {
-                    PIGPIO.set_pull_up_down(0, this.Pin, 2);
-                    Console.WriteLine("PUD-UP was set on GPIO" + this.Pin);
-
-                    timer = new Timer();
-
-                    timer.Elapsed += Tick;
-                    timer.Interval = 200;
-                    timer.Start();
-                }
-            }
-
-            HomeAutomationServer.server.Objects.Add(this);
-        }
-        public void SetClient(Client client)
-        {
-            this.Client = client;
-        }
+        //public string ObjectType = "BUTTON";
+        public string ObjectKind = "BUTTON";
 
         public void AddCommand(string command)
         {
@@ -138,25 +59,11 @@ namespace HomeAutomation.Objects.Inputs
             if (Objects.Contains(obj))
                 Objects.Remove(obj);
         }
-        public void Tick(object sender, ElapsedEventArgs args)
-        {
-            int currentStatus = PIGPIO.gpio_read(0, Pin);
-            bool lStatus;
-            if (currentStatus == 1) lStatus = false; else lStatus = true;
-
-            if (lStatus == this.Status) return;
-            else
-            {
-                this.Status = lStatus;
-                StatusChanged(lStatus);
-            }
-        }
         public void StatusChanged(bool value)
         {
-            Console.WriteLine(this.Name + " status: " + this.Status);
+            //Console.WriteLine(this.Name + " status: " + this.Status);
             if (value)
             {
-                //HomeAutomationServer.server.Telegram.Log("Button `" + this.Name + "` has been pressed.");
                 if (EmulatedSwitchStatus) EmulatedSwitchStatus = false; else EmulatedSwitchStatus = true;
                 foreach (string command in Commands)
                 {
@@ -212,14 +119,8 @@ namespace HomeAutomation.Objects.Inputs
         {
             return this.Name;
         }
-        public string GetObjectType()
-        {
-            return "BUTTON";
-        }
-        public NetworkInterface GetInterface()
-        {
-            return NetworkInterface.FromId(ObjectType);
-        }
+        abstract public string GetObjectType();
+        abstract public NetworkInterface GetInterface();
         public string[] GetFriendlyNames()
         {
             return new string[0];
@@ -245,7 +146,7 @@ namespace HomeAutomation.Objects.Inputs
         }
         public static string SendParameters(string method, string[] request, Identity login)
         {
-            if (method.Equals("createButton"))
+            /*if (method.Equals("createButton") || method.Equals("create"))
             {
                 if (!login.IsAdmin()) return new ReturnStatus(CommonStatus.ERROR_FORBIDDEN_REQUEST, "Insufficient permissions").Json();
                 string name = null;
@@ -304,7 +205,7 @@ namespace HomeAutomation.Objects.Inputs
                 ReturnStatus data = new ReturnStatus(CommonStatus.SUCCESS);
                 data.Object.button = button;
                 return data.Json();
-            }
+            }*/
             if (method.Equals("addObject"))
             {
                 if (!login.IsAdmin()) return new ReturnStatus(CommonStatus.ERROR_FORBIDDEN_REQUEST, "Insufficient permissions").Json();
@@ -389,7 +290,7 @@ namespace HomeAutomation.Objects.Inputs
                         action = iobj;
                     }
                 }
-                foreach(IObject iobj in HomeAutomationServer.server.Objects)
+                foreach (IObject iobj in HomeAutomationServer.server.Objects)
                 {
                     if (iobj.GetObjectType() == "BUTTON")
                     {
@@ -466,38 +367,11 @@ namespace HomeAutomation.Objects.Inputs
                 button.StatusChanged(true);
                 return new ReturnStatus(CommonStatus.SUCCESS).Json();
             }
-
-            if (string.IsNullOrEmpty("method"))
-            {
-                if (!login.IsAdmin()) return new ReturnStatus(CommonStatus.ERROR_FORBIDDEN_REQUEST, "Insufficient permissions").Json();
-                Button button = null;
-                foreach (string cmd in request)
-                {
-                    string[] command = cmd.Split('=');
-                    if (command[0].Equals("interface")) continue;
-                    switch (command[0])
-                    {
-                        case "objname":
-                            foreach (IObject obj in HomeAutomationServer.server.Objects)
-                            {
-                                if (obj.GetName().Equals(command[1]))
-                                {
-                                    button = (Button)obj;
-                                }
-                            }
-                            break;
-
-                        case "switch":
-                            button.StatusChanged(true);
-                            break;
-                    }
-                }
-            }
-            return "";
+            return new ReturnStatus(CommonStatus.ERROR_NOT_IMPLEMENTED).Json();
         }
-        public static void Setup(Room room, dynamic device)
+        public static void Initialize(Button button, dynamic device)
         {
-            Button button = new Button(device.Client, device.Name, (uint)device.Pin, device.IsRemote);
+            button.Name = device.Name;
             foreach (string command in device.Commands)
             {
                 button.AddCommand(command);
@@ -510,9 +384,43 @@ namespace HomeAutomation.Objects.Inputs
             {
                 button.AddAction(action);
             }
-            button.ClientName = device.Client.Name;
-            button.SetClient(device.Client);
-            room.AddItem(button);
+        }
+        public string CompleteRegistration(string[] request)
+        {
+            Room room = null;
+            foreach (string cmd in request)
+            {
+                string[] command = cmd.Split('=');
+                if (command[0].Equals("interface")) continue;
+                switch (command[0])
+                {
+                    case "objname":
+                        this.Name = command[1];
+                        break;
+
+                    case "room":
+                        foreach (Room stanza in HomeAutomationServer.server.Rooms)
+                        {
+                            if (stanza.Name.ToLower().Equals(command[1].ToLower()))
+                            {
+                                room = stanza;
+                            }
+                        }
+                        break;
+                }
+            }
+            if (room == null) return new ReturnStatus(CommonStatus.ERROR_NOT_FOUND, "Room not found").Json();
+
+            this.Commands = new List<string>();
+            this.Objects = new List<string>();
+            this.Actions = new List<string>();
+
+            room.AddItem(this);
+            HomeAutomationServer.server.Objects.Add(this);
+
+            ReturnStatus data = new ReturnStatus(CommonStatus.SUCCESS);
+            data.Object.button = this;
+            return data.Json();
         }
     }
 }

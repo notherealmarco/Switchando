@@ -1,4 +1,4 @@
-﻿using HomeAutomation.Network;
+﻿/*using HomeAutomation.Network;
 using HomeAutomation.Network.APIStatus;
 using HomeAutomation.Objects.Inputs;
 using HomeAutomation.Objects.Switches;
@@ -333,4 +333,4 @@ namespace HomeAutomation.Objects.External
             room.AddItem(relay);
         }
     }
-}
+}*/

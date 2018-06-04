@@ -3,7 +3,6 @@ using HomeAutomation.Network.APIStatus;
 using HomeAutomation.Objects;
 using HomeAutomation.Objects.Blinds;
 using HomeAutomation.Objects.External;
-using HomeAutomation.Objects.Fans;
 using HomeAutomation.Objects.Inputs;
 using HomeAutomation.Objects.Lights;
 using HomeAutomation.Objects.Switches;
@@ -78,25 +77,27 @@ namespace HomeAutomation.ConfigRetriver
                         break;
                 }
             }
+            Room the_room = null;
+            IObject the_iobj = null;
             foreach (Room room in HomeAutomationServer.server.Rooms)
             {
                 foreach (IObject iobj in room.Objects)
                 {
                     if (iobj.GetName().Equals(name))
                     {
-                        room.Objects.Remove(iobj);
+                        the_room = room;
+                        the_iobj = iobj;
+                        continue;
                     }
                 }
             }
-            foreach (IObject iobj in HomeAutomationServer.server.Objects)
+            if (the_iobj != null)
             {
-                if (iobj.GetName().Equals(name))
-                {
-                    HomeAutomationServer.server.Objects.Remove(iobj);
-                    return true;
-                }
+                the_room.Objects.Remove(the_iobj);
+                HomeAutomationServer.server.Objects.Remove(the_iobj);
+                return true;
             }
-            return false;
+            else return false;
         }
         private static bool RemoveClient(string[] data)
         {

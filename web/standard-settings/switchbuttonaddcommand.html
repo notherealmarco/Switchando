@@ -56,7 +56,7 @@
 			var server = new Switchando();
 			var response;
 			if (onTurnOn) server.sendCommand("switch_button/addCommand?objname=" + name + "&command_on=" + command);
-			else server.sendCommand("switch_button/addCommand?objname=" + name + "&command_off=" + command);
+			else server.sendCommand("id/" + name + "/addCommand?objname=" + name + "&command_off=" + command);
 			var parsed = JSON.parse(response);
 			if (parsed.status == 0) {
 				return true;

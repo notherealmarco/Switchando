@@ -27,17 +27,31 @@ namespace HomeAutomation.ConfigRetriver
         }
         public void Save()
         {
-            string json = JsonConvert.SerializeObject(Database);
-            File.WriteAllText(FilePath, json);
+            try
+            {
+                string json = JsonConvert.SerializeObject(Database);
+                File.WriteAllText(FilePath, json);
+            }
+            catch
+            {
+                
+            }
         }
         public void Put(string path, object value)
         {
-            if (Database.ContainsKey(path))
+            try
             {
-                Database.Remove(path);
+                if (Database.ContainsKey(path))
+                {
+                    Database.Remove(path);
+                }
+                Database.Add(path, value);
+                Save();
             }
-            Database.Add(path, value);
-            Save();
+            catch
+            {
+
+            }
         }
         public void Put(string path, object value, bool save)
         {

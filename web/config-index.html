@@ -2,6 +2,8 @@
 <html>
 <head>
 	<meta charset="utf-8" />
+	<script src="/resources/cookie.js"></script>
+	<script src="/resources/switchando.js"></script>
 	<title></title>
 </head>
 <body>
@@ -9,15 +11,19 @@
 		p, a {
 			font-family: Calibri;
 		}
+
 			a:link {
 				color: #000;
 			}
+
 			a:visited {
 				color: #000;
 			}
+
 			a:hover {
 				color: #000;
 			}
+
 			a:active {
 				color: #000;
 			}
@@ -32,17 +38,10 @@
 	→ <a style="text-decoration: underline" onclick="redirect('standard-settings/add_device_group.html')">Add a new group</a><br />
 	→ <a style="text-decoration: underline" onclick="redirect('standard-settings/device_group_add_device.html')">Add a device to a group</a><br />
 
-	<p>↓ Lights and Relays</p>
-	→ <a style="text-decoration: underline" onclick="redirect('standard-settings/addlightrgb.html')">Add a new light RGB PWM</a><br />
-	→ <a style="text-decoration: underline" onclick="redirect('standard-settings/addlightw.html')">Add a new PWM single-channel light</a><br />
-	→ <a style="text-decoration: underline" onclick="redirect('standard-settings/addrelay.html')">Add a new relay switch</a><br />
-	→ <a style="text-decoration: underline" onclick="redirect('standard-settings/addwebrelay.html')">Add a new web relay switch</a><br />
+	<p>↓ Global devices</p>
 	→ <a style="text-decoration: underline" onclick="redirect('standard-settings/addblinds.html')">Add new blinds</a><br />
 
-	<p>↓ Buttons and switches</p>
-	→ <a style="text-decoration: underline" onclick="redirect('standard-settings/addbutton.html')">Add a button</a><br />
-	→ <a style="text-decoration: underline" onclick="redirect('standard-settings/addswitchbutton.html')">Add a new switch button (UNSTABLE)</a><br />
-	<br />
+	<p>↓ Button configuration</p>
 	→ <a style="text-decoration: underline" onclick="redirect('standard-settings/buttonaddobject.html')">Configure a button (switch on/off a device)</a><br />
 	→ <a style="text-decoration: underline" onclick="redirect('standard-settings/buttonaddaction.html')">Configure a button (execute an action when clicked)</a><br />
 	→ <a style="text-decoration: underline" onclick="redirect('standard-settings/buttonaddcommand.html')">Configure a button via API commands (use only if you can't use the other method)</a><br />
@@ -53,7 +52,21 @@
 
 	<p>↓ Actions and events</p>
 	→ <a style="text-decoration: underline" onclick="redirect('standard-settings/addaction.html')">Add a new action</a><br />
+
+	<p>↓ Switchando add-ons</p>
+	<div id="plugin-index">
+
+	</div>
+
 	<script>
+		var server = new Switchando();
+		var jplugins = server.sendCommand("get/plugins");
+		var plugins = JSON.parse(jplugins);
+		var html = "";
+		for (index = 0; index < plugins.length; ++index) {
+			html += "<a style=\"text-decoration: underline\" onclick=\"redirect('" + plugins[index].ConfigIndex + "')\">" + plugins[index].Name + "</a><a onclick=\"redirect('" + plugins[index].ConfigIndex + "')\"> → " + plugins[index].Description + "</a><br />";
+		}
+		document.getElementById("plugin-index").innerHTML = html;
 		function redirect(uri) {
 			uri = uri + document.location.search;
 			window.location.href = uri;
