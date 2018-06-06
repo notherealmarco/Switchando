@@ -20,7 +20,7 @@ namespace HomeAutomationCore
         public static HomeAutomationServer server;
 
         public string UUID;
-        public string Version = "a8";
+        public string Version = "a9";
 
         public List<Client.Client> Clients { get; set; }
         public List<NetworkInterface> NetworkInterfaces { get; set; }

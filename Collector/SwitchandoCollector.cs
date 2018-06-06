@@ -21,13 +21,21 @@ namespace Switchando.Collector
         }
         private static void Elapsed(object a, object b)
         {
-            if (File.Exists(Paths.GetServerPath() + "/collector.disabled"))
+            try
             {
-                Disable();
-                return;
+                if (File.Exists(Paths.GetServerPath() + "/collector.disabled"))
+                {
+                    Disable();
+                    return;
+                }
+                var url = "https://cloud.switchando.com/swcapi/account/telemetry/" + HomeAutomationCore.HomeAutomationServer.server.UUID + "/" + HomeAutomationCore.HomeAutomationServer.server.Version + "/" + System.Runtime.InteropServices.RuntimeInformation.OSDescription.Split(' ')[0] + "/" + System.Runtime.InteropServices.RuntimeInformation.OSArchitecture;
+                string r = new WebClient().DownloadString(url);
+                if (!r.Equals("thanks!")) Console.WriteLine("COLLECTOR | Internal server error -> " + r);
             }
-            string r = new WebClient().DownloadString("https://cloud.switchando.com/swcapi/account/telemetry/" + HomeAutomationCore.HomeAutomationServer.server.UUID + "/" + HomeAutomationCore.HomeAutomationServer.server.Version + "/" + System.Runtime.InteropServices.RuntimeInformation.OSDescription + "/" + System.Runtime.InteropServices.RuntimeInformation.OSArchitecture);
-            if (!r.Equals("thanks!")) Console.WriteLine("COLLECTOR | Internal server error -> " + r);
+            catch(Exception e)
+            {
+                Console.WriteLine("COLLECTOR | Exception -> " + e.Message);
+            }
         }
         public static void Disable()
         {
