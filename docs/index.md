@@ -1,4 +1,5 @@
+Welcome to Switchando
 
-# Welcome to Switchando
+### Index
 
-Huge WIP
+* [Welcome to Switchando  ### Index  * Install Switchando on a Raspberry Pi](https://switchando.com/install_rpi)
