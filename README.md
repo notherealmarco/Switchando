@@ -23,4 +23,4 @@ Are you still using Switchando in your home? Nope, I switched to Home Assistant,
 
 Before closing this post, I want to thank every one who believed in the project and supported it by offering me a lot of coffees.
 Thank you so much guys.
-- Marco
+Marco
