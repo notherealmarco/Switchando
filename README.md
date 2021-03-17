@@ -23,7 +23,7 @@ Anyway, Switchando was not a waste of time. I've learned a lot from Switchando a
 
 Are you still using Switchando in your home? Nope, I switched to Home Assistant (2021 update: I'm now contributing to the developement Home Assistant).
 
-Before closing this post, I want to thank every one who believed in the project and supported it by offering me a lot of coffees.
+Before closing this post, I want to thank everyone who believed in the project and supported it by offering me a lot of coffees.
 Thank you so much guys.
 <br />
 Marco
